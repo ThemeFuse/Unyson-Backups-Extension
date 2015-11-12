@@ -1,0 +1,14 @@
+#fw-ext-backups-log #fw-ext-backups-log-show-button .button-hide,
+#fw-ext-backups-log #fw-ext-backups-log-list {
+	display: none;
+}
+
+#fw-ext-backups-log.show-list #fw-ext-backups-log-show-button .button-view {
+	display: none;
+}
+#fw-ext-backups-log.show-list #fw-ext-backups-log-show-button .button-hide {
+	display: inline;
+}
+#fw-ext-backups-log.show-list #fw-ext-backups-log-list {
+	display: block;
+}

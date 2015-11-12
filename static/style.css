@@ -1,0 +1,21 @@
+#fw-ext-backups-status {
+	font-size: 13px;
+	font-weight: normal;
+}
+
+#fw-ext-backups-status img {
+	vertical-align: text-bottom;
+}
+
+#fw-ext-backups-archives table thead,
+#fw-ext-backups-archives table tfoot,
+#fw-ext-backups-archives .tablenav.bottom .tablenav-pages,
+#fw-ext-backups-archives .tablenav .bulkactions,
+#fw-ext-backups-archives.no-archives .tablenav {
+	display: none;
+}
+
+.fw-ext-backups-description ul {
+	list-style-type: disc;
+	padding-left: 18px;
+}

@@ -1,0 +1,11 @@
+#fw-ext-backups-demo-list .theme .theme-actions {
+	opacity: 1;
+}
+
+#fw-ext-backups-demo-list .theme a.more-details {
+	text-decoration: none;
+}
+
+#fw-ext-backups-demo-list .fw-ext-backups-demo-item.active .theme-actions {
+	display: none;
+}
