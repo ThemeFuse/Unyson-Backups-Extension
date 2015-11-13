@@ -429,11 +429,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							} elseif ( ! $state['tables'][ $line['data']['table'] ] ) {
 								break; // the table was skipped
 							} elseif (
-								!$state['full']
+								'options' === $line['data']['table']
 								&&
-							    'options' === $line['data']['table']
-								&&
-								apply_filters('fw_ext_backups_db_restore_exclude_option', false, $line['data']['row']['option_name'])
+								apply_filters('fw_ext_backups_db_restore_exclude_option', false,
+									$line['data']['row']['option_name'], $state['full']
+								)
 							) {
 								break;
 							}
