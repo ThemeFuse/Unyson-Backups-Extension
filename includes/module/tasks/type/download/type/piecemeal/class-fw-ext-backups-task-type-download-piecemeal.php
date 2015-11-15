@@ -16,7 +16,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 				return __( 'Piecemeal download', 'fw' );
 			}
 		} else {
-			if ($state['filesize']) {
+			if ($state['filesize'] && $state['position']) {
 				return sprintf(
 					__( 'Downloading... %s of %s', 'fw' ),
 					size_format($state['position']), size_format($state['filesize'])

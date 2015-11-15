@@ -9,29 +9,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	}
 
 	public function get_title(array $args = array(), array $state = array()) {
-		$suffix = '';
-
-		if (!empty($state)) {
-			switch ($state['task']) {
-				case 'cleanup':
-					$suffix = __('Cleanup', 'fw');
-					break;
-				case 'inspect':
-					$suffix = __('Inspecting file', 'fw');
-					break;
-				case 'import':
-					$suffix = __('Data import', 'fw');
-					break;
-				case 'keep:options':
-					$suffix = __('Preserving some options', 'fw');
-					break;
-				case 'replace':
-					$suffix = __('Replacing tables', 'fw');
-					break;
-			}
-		}
-
-		return __( 'Database restore', 'fw' ) . ($suffix ? ': '. $suffix : '');
+		return __( 'Database restore', 'fw' );
 	}
 
 	/**
