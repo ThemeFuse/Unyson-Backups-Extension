@@ -55,7 +55,7 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	public function get_page_url() {
-		$rel_path = 'tools.php?page=' . urlencode( $this->get_page_slug() );
+		$rel_path = 'admin.php?page=' . urlencode( $this->get_page_slug() );
 
 		if (is_multisite() && is_network_admin()) {
 			return network_admin_url( $rel_path );
