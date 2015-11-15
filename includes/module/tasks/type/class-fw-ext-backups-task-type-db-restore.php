@@ -133,7 +133,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							'line_decode_fail',
 							sprintf(
 								__( 'Failed to decode line %d from db file.', 'fw' ) .' '. fw_get_json_last_error_message(),
-								$state['step']
+								$state['step'] + 1
 							)
 						);
 					}
@@ -164,7 +164,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 					return new WP_Error(
 						'line_read_fail',
-						sprintf(__( 'Cannot read line %d from db file', 'fw' ), $state['step'])
+						sprintf(__( 'Cannot read line %d from db file', 'fw' ), $state['step'] + 1)
 					);
 				} else {
 					if (
@@ -332,7 +332,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							'line_decode_fail',
 							sprintf(
 								__( 'Failed to decode line %d from db file.', 'fw' ) .' '. fw_get_json_last_error_message(),
-								$state['step']
+								$state['step'] + 1
 							)
 						);
 					}
@@ -482,7 +482,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 								return new WP_Error(
 									'insert_fail',
-									sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] ),
+									sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 ),
 									array('sql' => $sql,)
 								);
 							}
