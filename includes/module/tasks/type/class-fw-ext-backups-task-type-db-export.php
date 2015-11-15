@@ -303,7 +303,7 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 		} else {
 			$tables = $this->tables;
 
-			foreach(array(
+			foreach(array_keys(array(
 				'users' => true,
 				'usermeta' => true,
 
@@ -314,7 +314,7 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 				'site' => true,
 				'sitemeta' => true,
 				'sitecategories' => true
-			) as $excluded_table) {
+			)) as $excluded_table) {
 				unset($tables[$excluded_table]);
 			}
 
