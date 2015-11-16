@@ -10,7 +10,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 	public function get_title(array $args = array(), array $state = array()) {
 		if (empty($state)) {
-			return __( 'Piecemeal download', 'fw' );
+			return __( 'Downloading...', 'fw' );
 		} else {
 			if ($state['position'] < 0) {
 				return __( 'Download finished. Doing unzip...', 'fw' );
@@ -43,6 +43,10 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 	}
 
 	private function get_min_piece_size() {
+		return $this->get_mb_in_bytes();
+	}
+
+	private function get_mb_in_bytes() {
 		return 1000 * 1000;
 	}
 
@@ -86,7 +90,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 			$state = array(
 				'position' => 0, // byte position in file (also can be used as 'downloaded bytes')
 				'file_size' => 0, // total file size in bytes
-				'piece_size' => 1000 * 1000 * 3, // piece size in bytes
+				'piece_size' => $this->get_mb_in_bytes() * 3, // piece size in bytes
 			);
 		}
 
@@ -129,7 +133,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 		if (is_wp_error($response)) {
 			if (
-				($state['piece_size'] = abs($state['piece_size'] - 1000))
+				($state['piece_size'] = abs($state['piece_size'] - $this->get_mb_in_bytes()))
 				&&
 				$state['piece_size'] >= $this->get_min_piece_size()
 			) {
