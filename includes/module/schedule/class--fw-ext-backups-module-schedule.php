@@ -107,6 +107,14 @@ class _FW_Ext_Backups_Module_Schedule extends _FW_Ext_Backups_Module {
 			),
 		));
 
+		/**
+		 * In case wp option value and cron schedule will be different (after full restore or something else)
+		 * To be sure, use every time cron schedule value
+		 */
+		foreach ($settings as $_type => &$_settings) {
+			$_settings['interval'] = (string)wp_get_schedule(self::$wp_cron_prefix . $_type);
+		}
+
 		if (is_null($type)) {
 			return $settings;
 		} else {
@@ -133,37 +141,40 @@ class _FW_Ext_Backups_Module_Schedule extends _FW_Ext_Backups_Module {
 		);
 
 		$current_settings = $this->get_settings();
+		$all_settings = array_merge(
+			array(
+				'full' => $current_settings['full'],
+				'content' => $current_settings['content'],
+			),
+			array($type => $settings)
+		);
 
 		update_option(
 			self::$wp_option_settings,
-			array_merge(array(
-				'full' => $current_settings['full'],
-				'content' => $current_settings['content'],
-			), array($type => $settings)),
+			$all_settings,
 			false
 		);
 
-		$this->update_cron_jobs();
+		// update cron
+		{
+			$hour = $this->get_cron_run_hour();
 
-		return true;
-	}
+			foreach ( $all_settings as $type => $settings ) {
+				$hook = self::$wp_cron_prefix . $type;
 
-	private function update_cron_jobs() {
-		$hour = $this->get_cron_run_hour();
+				wp_clear_scheduled_hook($hook);
 
-		foreach ( $this->get_settings() as $type => $settings ) {
-			$hook = self::$wp_cron_prefix . $type;
-
-			wp_clear_scheduled_hook($hook);
-
-			if ( $settings['interval'] ) {
-				wp_schedule_event(
-					time() + $this->get_time_until_hour( $hour ),
-					$settings['interval'],
-					$hook
-				);
+				if ( $settings['interval'] ) {
+					wp_schedule_event(
+						time() + $this->get_time_until_hour( $hour ),
+						$settings['interval'],
+						$hook
+					);
+				}
 			}
 		}
+
+		return true;
 	}
 
 	public function _filter_script_localized_data($data) {
@@ -212,6 +223,7 @@ class _FW_Ext_Backups_Module_Schedule extends _FW_Ext_Backups_Module {
 		}
 
 		$settings = $this->get_settings();
+
 		$values = array(
 			'full' => array(
 				'interval' => $settings['full']['interval'],
