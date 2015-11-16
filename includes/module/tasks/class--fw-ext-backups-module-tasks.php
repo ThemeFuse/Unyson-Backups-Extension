@@ -501,10 +501,6 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		) {
 			@ini_set( 'memory_limit', apply_filters( 'admin_memory_limit', WP_MAX_MEMORY_LIMIT ) );
 			@set_time_limit( abs($custom_timeout) );
-
-			error_log($task->get_type() .' '. $custom_timeout);
-		} else {
-			error_log($task->get_type() .' Default');
 		}
 
 		if ('POST' === $_SERVER['REQUEST_METHOD']) { ob_start(); } // prevent execution abort on output (see 'blocking')
