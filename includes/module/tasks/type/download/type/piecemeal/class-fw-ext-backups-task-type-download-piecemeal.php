@@ -13,7 +13,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 			return __( 'Piecemeal download', 'fw' );
 		} else {
 			if ($state['position'] < 0) {
-				return __( 'Download finished', 'fw' );
+				return __( 'Download finished. Doing unzip...', 'fw' );
 			} elseif ($state['filesize'] && $state['position']) {
 				return sprintf(
 					__( 'Downloading... %s of %s', 'fw' ),
