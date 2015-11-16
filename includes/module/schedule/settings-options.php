@@ -35,6 +35,7 @@ $sub_options = array(
 				'properties' => array(
 					'min' => 1,
 					'max' => $limits['monthly'],
+					'grid_snap' => true,
 				),
 			),
 		),
@@ -47,6 +48,7 @@ $sub_options = array(
 				'properties' => array(
 					'min' => 1,
 					'max' => $limits['weekly'],
+					'grid_snap' => true,
 				),
 			),
 		),
@@ -59,6 +61,7 @@ $sub_options = array(
 				'properties' => array(
 					'min' => 1,
 					'max' => $limits['daily'],
+					'grid_snap' => true,
 				),
 			),
 		),
