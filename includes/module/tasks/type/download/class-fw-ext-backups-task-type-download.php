@@ -12,7 +12,7 @@ class FW_Ext_Backups_Task_Type_Download extends FW_Ext_Backups_Task_Type {
 	 * {@inheritdoc}
 	 */
 	public function get_title(array $args = array(), array $state = array()) {
-		if ($state && ($type = self::get_type_($args['type']))) {
+		if ($type = self::get_type_($args['type'])) {
 			return $type->get_title($args, $state);
 		} else {
 			return __('Download', 'fw');
@@ -22,8 +22,19 @@ class FW_Ext_Backups_Task_Type_Download extends FW_Ext_Backups_Task_Type {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function raise_limits() {
-		return true;
+	public function get_custom_timeout(array $args, array $state = array()) {
+		if ($type = self::get_type_($args['type'])) {
+			/**
+			 * Download type can set custom timeout
+			 * For e.g. some download types are performed in steps and don't require timeout increase
+			 */
+			return $type->get_custom_timeout($args, $state);
+		} else {
+			/**
+			 * Usually downloading a file takes long time
+			 */
+			return fw_ext('backups')->get_config('max_timeout');
+		}
 	}
 
 	private static $access_key;

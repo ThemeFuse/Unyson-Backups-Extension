@@ -27,9 +27,9 @@ abstract class FW_Ext_Backups_Task_Type {
 	abstract public function execute(array $args, array $state = array());
 
 	/**
-	 * @return bool If can't be executed in multiple steps
+	 * @param array $args
+	 * @param array $state
+	 * @return int
 	 */
-	public function raise_limits() {
-		return false;
-	}
+	public function get_custom_timeout(array $args, array $state = array()) {}
 }

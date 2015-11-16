@@ -10,10 +10,12 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 	}
 
 	/**
+	 * Files restore can't be done in steps,
+	 * because the site will not work without all files (half of a theme, or a plugin)
 	 * {@inheritdoc}
 	 */
-	public function raise_limits() {
-		return true;
+	public function get_custom_timeout(array $args, array $state = array()) {
+		return fw_ext('backups')->get_config('max_timeout');
 	}
 
 	/**

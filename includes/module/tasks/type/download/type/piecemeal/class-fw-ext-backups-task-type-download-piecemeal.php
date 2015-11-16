@@ -10,13 +10,11 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 	public function get_title(array $args = array(), array $state = array()) {
 		if (empty($state)) {
+			return __( 'Piecemeal download', 'fw' );
+		} else {
 			if ($state['position'] < 0) {
 				return __( 'Download finished', 'fw' );
-			} else {
-				return __( 'Piecemeal download', 'fw' );
-			}
-		} else {
-			if ($state['filesize'] && $state['position']) {
+			} elseif ($state['filesize'] && $state['position']) {
 				return sprintf(
 					__( 'Downloading... %s of %s', 'fw' ),
 					size_format($state['position']), size_format($state['filesize'])
@@ -27,6 +25,20 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 					size_format($state['position'])
 				);
 			}
+		}
+	}
+
+	public function get_custom_timeout(array $args, array $state = array()) {
+		if (!empty($state) && $state['position'] < 0) {
+			/**
+			 * When the download finished, unzip is performed, and it can take long time
+			 */
+			return fw_ext('backups')->get_config('max_timeout');
+		} else {
+			/**
+			 * No need to increase timeout because this download type is performed in steps
+			 */
+			return 0;
 		}
 	}
 
@@ -74,7 +86,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 			$state = array(
 				'position' => 0, // byte position in file (also can be used as 'downloaded bytes')
 				'file_size' => 0, // total file size in bytes
-				'piece_size' => 1000 * 1000 * 4, // piece size in bytes
+				'piece_size' => 1000 * 1000 * 3, // piece size in bytes
 			);
 		}
 
@@ -117,7 +129,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 		if (is_wp_error($response)) {
 			if (
-				($state['piece_size'] = abs($state['piece_size'] / 2))
+				($state['piece_size'] = abs($state['piece_size'] - 1000))
 				&&
 				$state['piece_size'] >= $this->get_min_piece_size()
 			) {

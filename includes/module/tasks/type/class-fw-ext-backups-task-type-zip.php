@@ -13,10 +13,12 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 	}
 
 	/**
+	 * When the zip is big, adding just a single file will recompile the entire zip.
+	 * So it can't be executed in steps.
 	 * {@inheritdoc}
 	 */
-	public function raise_limits() {
-		return true;
+	public function get_custom_timeout(array $args, array $state = array()) {
+		return fw_ext('backups')->get_config('max_timeout');
 	}
 
 	/**

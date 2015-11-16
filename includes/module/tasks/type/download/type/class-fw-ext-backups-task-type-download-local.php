@@ -6,7 +6,7 @@ class FW_Ext_Backups_Task_Type_Download_Local extends FW_Ext_Backups_Task_Type_D
 	}
 
 	public function get_title(array $args = array(), array $state = array()) {
-		return __('Local', 'fw');
+		return __('Local Download', 'fw');
 	}
 
 	/**

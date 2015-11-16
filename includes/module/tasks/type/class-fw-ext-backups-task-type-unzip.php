@@ -15,8 +15,8 @@ class FW_Ext_Backups_Task_Type_Unzip extends FW_Ext_Backups_Task_Type {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function raise_limits() {
-		return true;
+	public function get_custom_timeout(array $args, array $state = array()) {
+		return fw_ext('backups')->get_config('max_timeout');
 	}
 
 	/**

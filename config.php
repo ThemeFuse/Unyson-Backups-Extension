@@ -67,3 +67,9 @@ $cfg['db.restore.keep_options'] = array_merge(
  * Format: 0...23
  */
 $cfg['schedule.hour'] = 3;
+
+/**
+ * The tasks that can't be executed in steps (for e.g. zip)
+ * will use this value to try to increase php's default timeout
+ */
+$cfg['max_timeout'] = 60 * 10;

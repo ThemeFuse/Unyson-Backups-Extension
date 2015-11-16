@@ -32,8 +32,6 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 	private static $wp_ajax_action = 'fw:ext:backups:continue-pending-task';
 
-	private static $raised_timeout = 600;
-
 	public function _init() {
 		require_once dirname(__FILE__) .'/entity/class-fw-ext-backups-task.php';
 		require_once dirname(__FILE__) .'/entity/class-fw-ext-backups-task-collection.php';
@@ -286,9 +284,12 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 						if (
 							($task_type = $this->_get_task_type( $task->get_type(), self::get_access_key() ))
 							&&
-							$task_type->raise_limits()
+							($custom_timeout = $task_type->get_custom_timeout(
+								$task->get_args(),
+								is_array($task->get_result()) ? $task->get_result() : array()
+							))
 						) {
-							$timeout = self::$raised_timeout;
+							$timeout = abs($custom_timeout);
 						} else {
 							$timeout = self::backups()->get_timeout();
 						}
@@ -493,10 +494,17 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		if (
 			($task_type = $this->_get_task_type( $task->get_type(), self::get_access_key() ))
 			&&
-			$task_type->raise_limits()
+			($custom_timeout = $task_type->get_custom_timeout(
+				$task->get_args(),
+				is_array($task->get_result()) ? $task->get_result() : array()
+			))
 		) {
 			@ini_set( 'memory_limit', apply_filters( 'admin_memory_limit', WP_MAX_MEMORY_LIMIT ) );
-			@set_time_limit( self::$raised_timeout );
+			@set_time_limit( abs($custom_timeout) );
+
+			error_log($task->get_type() .' '. $custom_timeout);
+		} else {
+			error_log($task->get_type() .' Default');
 		}
 
 		if ('POST' === $_SERVER['REQUEST_METHOD']) { ob_start(); } // prevent execution abort on output (see 'blocking')
