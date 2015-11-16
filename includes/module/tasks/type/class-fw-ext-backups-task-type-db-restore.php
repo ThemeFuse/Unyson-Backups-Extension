@@ -12,6 +12,25 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		return __( 'Database restore', 'fw' );
 	}
 
+	private $cache_table_index_columns = array();
+
+	private function get_index_column($table_name) {
+		if (!isset($this->cache_table_index_columns[$table_name])) {
+			global $wpdb; /** @var WPDB $wpdb */
+
+			$this->cache_table_index_columns[$table_name] = false;
+
+			foreach ($wpdb->get_results('SHOW INDEX FROM '. $table_name, ARRAY_A) as $row) {
+				if ($row['Key_name'] === 'PRIMARY') {
+					$this->cache_table_index_columns[$table_name] = $row['Column_name'];
+					break;
+				}
+			}
+		}
+
+		return $this->cache_table_index_columns[$table_name];
+	}
+
 	/**
 	 * {@inheritdoc}
 	 * @param array $args
@@ -389,8 +408,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 								return new WP_Error(
 									'tmp_table_create_fail',
-									sprintf( __( 'Failed to create tmp table %s', 'fw' ), $tmp_table_name ),
-									array('sql' => $sql,)
+									sprintf( __( 'Failed to create tmp table %s', 'fw' ), $tmp_table_name )
 								);
 							}
 
@@ -471,23 +489,112 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								}
 							}
 
-							$sql = 'INSERT INTO ' . $tmp_table_name . " ( \n"
-							       . implode( ', ', array_map( 'esc_sql', array_keys( $line['data']['row'] ) ) ) . " \n"
-							       . ") VALUES ( \n"
-							       . implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $line['data']['row'] ) ) . " \n"
-							       . ')';
+							/**
+							 * Insert pieces of rows to prevent mysql error when inserting very big strings.
+							 * Do this only if table has index column so we can do 'UPDATE ... WHERE index_column = %s'
+							 */
+							if ($index_column = $this->get_index_column($tmp_table_name)) {
+								/**
+								 * Tested, and maximum value which works is 950000
+								 * but may be tables with many columns with big strings
+								 * so set this value lower to be sure the limit is not reached.
+								 */
+								$value_max_length = 500000;
+								$update_count = 0;
+								$index_column_value = $line['data']['row'][ $index_column ];
 
-							if ( false === $wpdb->query( $sql ) ) {
-								$fo = null;
+								while ($line['data']['row']) {
+									$row = array();
 
-								return new WP_Error(
-									'insert_fail',
-									sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 ),
-									array('sql' => $sql,)
-								);
+									foreach (array_keys($line['data']['row']) as $column_name) {
+										$row[ $column_name ] = mb_substr(
+											$line['data']['row'][ $column_name ],
+											0, $value_max_length
+										);
+
+										$row_length = mb_strlen($row[ $column_name ]);
+
+										/**
+										 * The string was cut between a slashed character, for e.g. \" or \\
+										 * Append next characters until the slashing is closed
+										 */
+										while (($last_char = mb_substr($row[ $column_name ], -1)) === '\\') {
+											$row[ $column_name ] .= mb_substr(
+												$line['data']['row'][ $column_name ],
+												$row_length - 1, 1
+											);
+
+											$row_length++; // do not call mb_strlen() on every loop
+										}
+
+										$line['data']['row'][ $column_name ] = mb_substr(
+											$line['data']['row'][ $column_name ],
+											$row_length
+										);
+
+										if (empty($line['data']['row'][ $column_name ])) {
+											unset($line['data']['row'][ $column_name ]);
+										}
+									}
+
+									if ($update_count) {
+										{
+											$set_sql = array();
+											foreach (array_keys($row) as $column_name) {
+												$set_sql[] = esc_sql($column_name) .' = CONCAT( '. esc_sql($column_name)
+													.' , '. $wpdb->prepare('%s', $row[$column_name]) .')';
+											}
+											$set_sql = implode(', ', $set_sql);
+										}
+
+										$sql = implode(" \n", array(
+											"UPDATE {$tmp_table_name} SET",
+											$set_sql,
+											'WHERE '. esc_sql($index_column) .' = '. $wpdb->prepare('%s', $index_column_value)
+										));
+									} else {
+										$sql = implode(" \n", array(
+											"INSERT INTO {$tmp_table_name} (",
+											implode( ', ', array_map( 'esc_sql', array_keys( $row ) ) ),
+											") VALUES (",
+											implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $row ) ),
+											")"
+										));
+									}
+
+									if ( false === $wpdb->query( $sql ) ) {
+										$fo = null;
+
+										return new WP_Error(
+											'insert_fail',
+											sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
+										);
+									}
+
+									unset( $sql );
+
+									$update_count++;
+								}
+							} else {
+								$sql = implode(" \n", array(
+									"INSERT INTO {$tmp_table_name} (",
+									implode( ', ', array_map( 'esc_sql', array_keys( $line['data']['row'] ) ) ),
+									") VALUES (",
+									implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $line['data']['row'] ) ),
+									")"
+								));
+
+								if ( false === $wpdb->query( $sql ) ) {
+									$fo = null;
+
+									return new WP_Error(
+										'insert_fail',
+										sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
+									);
+								}
+
+								unset( $sql );
 							}
-
-							unset( $sql );
 							break;
 						case 'param':
 							break;
@@ -628,7 +735,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 					if (!$wpdb->query($drop_sql)) {
 						return new WP_Error(
-							'tables_drop_fail', __('Tables drop failed', 'fw'), array('sql' => $drop_sql)
+							'tables_drop_fail', __('Tables drop failed', 'fw')
 						);
 					}
 				}
@@ -641,8 +748,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					if ($rename_sql === $wpdb->last_query && $wpdb->last_error) {
 						return new WP_Error(
 							'tables_rename_fail',
-							__('Tables rename failed.', 'fw') .' '. $wpdb->last_error,
-							array('sql' => $rename_sql)
+							__('Tables rename failed.', 'fw') .' '. $wpdb->last_error
 						);
 					}
 				}
