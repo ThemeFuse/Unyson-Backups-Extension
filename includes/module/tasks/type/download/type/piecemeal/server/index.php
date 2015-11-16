@@ -19,7 +19,7 @@ $megabyte = 1000 * 1000;
 		'files' => array(
 			// 'demo-id' => '/path/to/demo.zip',
 		),
-		'size' => $megabyte * 4, // piece size in bytes
+		'size' => $megabyte * 3, // piece size in bytes
 	), $cfg);
 
 	if (empty($cfg['files'])) {
