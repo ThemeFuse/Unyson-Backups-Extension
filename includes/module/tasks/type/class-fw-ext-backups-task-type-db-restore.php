@@ -638,7 +638,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				$started_time = time();
 				$timeout      = fw_ext( 'backups' )->get_timeout() - 7;
 
-				// restore array pointer possition
+				// restore array pointer position
 				if ($state['step']) {
 					while (
 						($option_name = key($keep_options))
