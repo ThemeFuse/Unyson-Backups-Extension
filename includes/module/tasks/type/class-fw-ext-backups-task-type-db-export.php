@@ -112,6 +112,23 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 					)) . "\n"
 				);
 
+				{
+					$tmp = wp_upload_dir();
+
+					fwrite(
+						$fp,
+						json_encode(array(
+							'type' => 'param',
+							'data' => array(
+								'name' => 'wp_upload_dir_baseurl',
+								'value' => $tmp['baseurl'],
+							),
+						)) . "\n"
+					);
+
+					unset($tmp);
+				}
+
 				$state['params'] = true;
 			}
 
