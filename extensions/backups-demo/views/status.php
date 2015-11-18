@@ -10,15 +10,13 @@ $backups = fw_ext( 'backups' ); /** @var FW_Extension_Backups $backups */
 ?>
 <?php if ($install_is_executing): ?>
 	<h2 class="fw-text-muted">
-		<img src="<?php echo get_site_url() ?>/wp-admin/images/spinner.gif"
-		     alt="Loading" style="vertical-align: middle;" />
+		<img src="<?php echo get_site_url() ?>/wp-admin/images/spinner.gif" alt="Loading" class="wp-spinner" />
 		<?php esc_html_e('Installing', 'fw') ?>
 	</h2>
-	<p class="fw-text-muted"><em><?php
-		esc_html_e('We are currently installing your content.')
-	?></em></p>
+	<p class="fw-text-muted">
+	<em><?php esc_html_e('We are currently installing your content.') ?></em><br/>
 	<?php if ($executing_task): ?>
-		<em class="fw-text-muted"><?php
+		<em><?php
 			echo esc_html($backups->tasks()->get_task_type_title(
 				$executing_task->get_type(),
 				$executing_task->get_args(),
@@ -26,7 +24,7 @@ $backups = fw_ext( 'backups' ); /** @var FW_Extension_Backups $backups */
 			));
 		?></em>
 	<?php elseif ($pending_task): ?>
-		<em class="fw-text-muted"><?php
+		<em><?php
 			echo esc_html($backups->tasks()->get_task_type_title(
 				$pending_task->get_type(),
 				$pending_task->get_args(),
@@ -34,6 +32,7 @@ $backups = fw_ext( 'backups' ); /** @var FW_Extension_Backups $backups */
 			));
 		?></em>
 	<?php endif; ?>
+	</p>
 <?php elseif ($install_is_pending): ?>
 	<p><img src="<?php echo get_site_url() ?>/wp-admin/images/spinner.gif" alt="Loading"></p>
 	<em class="fw-text-muted"><?php esc_html_e('Pending', 'fw') ?></em>

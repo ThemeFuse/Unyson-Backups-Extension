@@ -149,8 +149,14 @@ jQuery(function($) {
 				if (data.active_demo.result) {
 					if (data.active_demo.result === true) {
 						fw.soleModal.hide(inst.fwLoadingId);
-						$(document.body).fadeOut();
-						window.location.assign(data.home_url);
+
+						setTimeout(function(){
+							$(document.body).fadeOut();
+						}, 500); // after modal hide animation end
+
+						setTimeout(function(){
+							window.location.assign(data.home_url);
+						}, 1000); // after all animations end
 					} else {
 						fw.soleModal.show(
 							inst.fwLoadingId,
