@@ -7,6 +7,13 @@
  * @var FW_Extension_Backups $backups
  */
 $backups = fw_ext('backups');
+
+$confirm = esc_html__(
+	'IMPORTANT: Installing this demo content will delete the content you currently have on your website.'
+	.' However, we create a back-up of your current content in (Tools > Backup).'
+	.' You can restore the back up from there at any time in the future.',
+	'fw'
+);
 ?>
 <h2><?php esc_html_e('Demo Content Install', 'fw') ?></h2>
 
@@ -26,6 +33,7 @@ $backups = fw_ext('backups');
 		<div class="theme-actions">
 			<a class="button button-primary"
 			   href="#" onclick="return false;"
+			   data-confirm="<?php echo esc_attr($confirm); ?>"
 			   data-install="<?php echo esc_attr($demo->get_id()) ?>"><?php esc_html_e('Install', 'fw'); ?></a>
 		</div>
 	</div>
