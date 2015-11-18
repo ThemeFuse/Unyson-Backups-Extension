@@ -92,7 +92,7 @@ jQuery(function($){
 					{
 						allowClose: false,
 						updateIfCurrent: true,
-						backdrop: false
+						backdrop: null
 					}
 				);
 			} else {
@@ -108,7 +108,7 @@ jQuery(function($){
 					'<span class="fw-text-danger dashicons dashicons-warning"></span>',
 					{
 						allowClose: false,
-						backdrop: false
+						backdrop: null
 					}
 				);
 			}
