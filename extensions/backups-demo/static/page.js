@@ -148,21 +148,9 @@ jQuery(function($) {
 
 				if (data.active_demo.result) {
 					if (data.active_demo.result === true) {
-						fw.soleModal.show(
-							inst.fwLoadingId,
-							'<span class="dashicons dashicons-yes fw-text-success"'
-							+' style="font-size: 100px; width: 100px; height: 100px;"></span>',
-							{
-								allowClose: false,
-								backdrop: false
-							}
-						);
-
-						setTimeout(function () {
-							$('#fw-ext-backups-demo-list').fadeOut();
-
-							window.location.assign(data.home_url);
-						}, 3000);
+						fw.soleModal.hide(inst.fwLoadingId);
+						$(document.body).fadeOut();
+						window.location.assign(data.home_url);
 					} else {
 						fw.soleModal.show(
 							inst.fwLoadingId,
