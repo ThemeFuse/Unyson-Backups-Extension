@@ -302,18 +302,40 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					'replace' => array(),
 				);
 
-				/**
-				 * Note: rtrim(..., '/') is done to prevent wrong link replace
-				 *       'http://abc.com/img.jpg' -> 'http://def.comimg.jpg'
-				 */
-				foreach (array(
-					rtrim(fw_get_url_without_scheme($state['params']['siteurl']), '/')
-						=> rtrim(fw_get_url_without_scheme(get_option('siteurl')), '/'),
-					rtrim(fw_get_url_without_scheme($state['params']['home']), '/')
-						=> rtrim(fw_get_url_without_scheme(get_option('home')), '/'),
-					rtrim($state['params']['siteurl'], '/') => rtrim(get_option('siteurl'), '/'),
-					rtrim($state['params']['home'], '/') => rtrim(get_option('home'), '/'),
-				) as $search => $replace) {
+				{
+					/**
+					 * Note: rtrim(..., '/') is used to prevent wrong link replace
+					 *       'http://abc.com/img.jpg' -> 'http://def.comimg.jpg'
+					 * Note: First links should be the longest, to prevent the short part replace
+					 *       when the long part must be replaced (thus making wrong replace)
+					 */
+					$search_replace = array();
+
+					/**
+					 * This parameter (fix) was added after extension release
+					 * so some demo installs may not have it
+					 */
+					if (isset($state['params']['wp_upload_dir_baseurl'])) {
+						$wp_upload_dir = wp_upload_dir();
+
+						$search_replace[ rtrim($state['params']['wp_upload_dir_baseurl'], '/') ]
+							= rtrim($wp_upload_dir['baseurl'], '/');
+
+						unset($wp_upload_dir);
+					}
+
+					$search_replace[ rtrim($state['params']['siteurl'], '/') ]
+						= rtrim(get_option('siteurl'), '/');
+					$search_replace[ rtrim($state['params']['home'], '/') ]
+						= rtrim(get_option('home'), '/');
+
+					foreach ($search_replace as $search => $replace) {
+						$search_replace[ fw_get_url_without_scheme($search) ]
+							= fw_get_url_without_scheme($replace);
+					}
+				}
+
+				foreach ($search_replace as $search => $replace) {
 					if ($search === $replace) {
 						continue;
 					}
@@ -335,6 +357,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						$params['replace'][] = str_replace( '/', '\\\\\\/', $replace);
 					}
 				}
+
+				unset($search_replace, $search, $replace);
 			}
 
 			$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
