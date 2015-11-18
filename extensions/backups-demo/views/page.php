@@ -10,8 +10,8 @@ $backups = fw_ext('backups');
 
 $confirm = esc_html__(
 	'IMPORTANT: Installing this demo content will delete the content you currently have on your website.'
-	.' However, we create a back-up of your current content in (Tools > Backup).'
-	.' You can restore the back up from there at any time in the future.',
+	.' However, we create a backup of your current content in (Tools > Backup).'
+	.' You can restore the backup from there at any time in the future.',
 	'fw'
 );
 ?>
