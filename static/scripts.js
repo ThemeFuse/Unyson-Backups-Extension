@@ -444,7 +444,7 @@ jQuery(function($){
 				})
 				.done(function(r){
 					if (r.success) {
-						// ok
+						fwEvents.trigger('fw:ext:backups:status:do-update');
 					} else {
 						fw.soleModal.show(inst.fwLoadingId, '<h2>Error</h2>');
 					}
