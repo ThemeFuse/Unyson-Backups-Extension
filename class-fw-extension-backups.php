@@ -81,8 +81,7 @@ class FW_Extension_Backups extends FW_Extension {
 			return FW_Cache::get($cache_key);
 		} catch (FW_Cache_Not_Found_Exception $e) {
 			$is_disabled = (
-				is_multisite() &&
-				!is_main_site() &&
+				is_multisite() && !current_user_can('manage_network_plugins') &&
 				apply_filters('fw:ext:backups:multisite_disabled', false)
 			);
 
