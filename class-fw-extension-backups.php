@@ -71,6 +71,8 @@ class FW_Extension_Backups extends FW_Extension {
 	/**
 	 * On some installations the backup actions need to be disabled for security reasons
 	 * (for e.g. public testlabs for clients to test your theme and demo content install)
+	 * @return bool
+	 * @since 2.0.1
 	 */
 	public function is_disabled() {
 		$cache_key = $this->get_cache_key('/disabled');
