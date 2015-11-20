@@ -398,13 +398,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							}
 
 							{
-								$sql = 'CREATE TABLE ' . esc_sql( $tmp_table_name ) . ' (' . "\n";
+								$sql = 'CREATE TABLE `' . esc_sql( $tmp_table_name ) . "` (\n";
 
 								{
 									$cols_sql = array();
 
 									foreach ( $line['data']['columns'] as $col_name => $col_opts ) {
-										$cols_sql[] = esc_sql( $col_name ) . ' ' . (
+										$cols_sql[] = '`'. esc_sql( $col_name ) .'` '. (
 											$utf8mb4_is_supported
 												? $col_opts
 												: str_replace( 'utf8mb4', 'utf8', $col_opts )
@@ -415,7 +415,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 										$cols_sql[] = $index;
 									}
 
-									$sql .= implode( ', ' . "\n", $cols_sql );
+									$sql .= implode( ", \n", $cols_sql );
 
 									unset( $cols_sql );
 								}
@@ -565,7 +565,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 										{
 											$set_sql = array();
 											foreach (array_keys($row) as $column_name) {
-												$set_sql[] = esc_sql($column_name) .' = CONCAT( '. esc_sql($column_name)
+												$set_sql[] = '`'. esc_sql($column_name) .'` = CONCAT( `'. esc_sql($column_name) .'`'
 													.' , '. $wpdb->prepare('%s', $row[$column_name]) .')';
 											}
 											$set_sql = implode(', ', $set_sql);
@@ -574,12 +574,12 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 										$sql = implode(" \n", array(
 											"UPDATE {$tmp_table_name} SET",
 											$set_sql,
-											'WHERE '. esc_sql($index_column) .' = '. $wpdb->prepare('%s', $index_column_value)
+											'WHERE `'. esc_sql($index_column) .'` = '. $wpdb->prepare('%s', $index_column_value)
 										));
 									} else {
 										$sql = implode(" \n", array(
 											"INSERT INTO {$tmp_table_name} (",
-											implode( ', ', array_map( 'esc_sql', array_keys( $row ) ) ),
+											'`'. implode( '`, `', array_map( 'esc_sql', array_keys( $row ) ) ) .'`',
 											") VALUES (",
 											implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $row ) ),
 											")"
@@ -602,7 +602,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							} else {
 								$sql = implode(" \n", array(
 									"INSERT INTO {$tmp_table_name} (",
-									implode( ', ', array_map( 'esc_sql', array_keys( $line['data']['row'] ) ) ),
+									'`'. implode( '`, `', array_map( 'esc_sql', array_keys( $line['data']['row'] ) ) ) .'`',
 									") VALUES (",
 									implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $line['data']['row'] ) ),
 									")"
@@ -701,7 +701,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 							if (false === $wpdb->query(
 								"INSERT INTO {$tmp_options_table} ( \n"
-								. implode( ', ', array_map( 'esc_sql', array_keys( $row ) ) ) . "  \n"
+								. '`'. implode( '`, `', array_map( 'esc_sql', array_keys( $row ) ) ) . "`  \n"
 								. ") VALUES ( \n"
 								. implode( ', ', array_map( array( $this, '_wpdb_prepare_string' ), $row ) ) . " \n"
 								. ')'
@@ -755,7 +755,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 			if (!empty($rename_sql)) {
 				if (!empty($drop_sql)) {
-					$drop_sql = 'DROP TABLE '."\n". implode(" , \n", $drop_sql);
+					$drop_sql = "DROP TABLE \n". implode(" , \n", $drop_sql);
 
 					if (!$wpdb->query($drop_sql)) {
 						return new WP_Error(
@@ -764,7 +764,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					}
 				}
 				{
-					$rename_sql = 'RENAME TABLE '."\n". implode(" , \n", $rename_sql);
+					$rename_sql = "RENAME TABLE \n". implode(" , \n", $rename_sql);
 
 					$wpdb->query($rename_sql);
 
