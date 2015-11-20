@@ -344,10 +344,12 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		$dirs = array('uploads' => fw_fix_path($wp_upload_dir['basedir']));
 		$id_prefix = 'demo:';
 
-		$collection = self::backups()->tasks()->add_backup_tasks(
-			new FW_Ext_Backups_Task_Collection(self::$task_collection_id),
-			false
-		);
+		$collection = new FW_Ext_Backups_Task_Collection(self::$task_collection_id);
+
+		if (!self::backups()->is_disabled()) {
+			$collection = self::backups()->tasks()->add_backup_tasks( $collection, false );
+		}
+
 		$collection->set_title(__('Demo Content Install', 'fw'));
 
 		$collection->add_task(new FW_Ext_Backups_Task(

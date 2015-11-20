@@ -8,12 +8,16 @@
  */
 $backups = fw_ext('backups');
 
-$confirm = esc_html__(
-	'IMPORTANT: Installing this demo content will delete the content you currently have on your website.'
-	.' However, we create a backup of your current content in (Tools > Backup).'
-	.' You can restore the backup from there at any time in the future.',
-	'fw'
-);
+if ($backups->is_disabled()) {
+	$confirm = '';
+} else {
+	$confirm = esc_html__(
+		'IMPORTANT: Installing this demo content will delete the content you currently have on your website.'
+		. ' However, we create a backup of your current content in (Tools > Backup).'
+		. ' You can restore the backup from there at any time in the future.',
+		'fw'
+	);
+}
 ?>
 <h2><?php esc_html_e('Demo Content Install', 'fw') ?></h2>
 

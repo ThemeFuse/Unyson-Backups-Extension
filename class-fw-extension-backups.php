@@ -55,6 +55,10 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	public function get_page_url() {
+		if ($this->is_disabled()) {
+			return;
+		}
+
 		$rel_path = 'admin.php?page=' . urlencode( $this->get_page_slug() );
 
 		if (is_multisite() && is_network_admin()) {
@@ -64,18 +68,42 @@ class FW_Extension_Backups extends FW_Extension {
 		}
 	}
 
+	/**
+	 * On some installations the backup actions need to be disabled for security reasons
+	 * (for e.g. public testlabs for clients to test your theme and demo content install)
+	 */
+	public function is_disabled() {
+		$cache_key = $this->get_cache_key('/disabled');
+
+		try {
+			return FW_Cache::get($cache_key);
+		} catch (FW_Cache_Not_Found_Exception $e) {
+			$is_disabled = (
+				is_multisite() &&
+				!is_main_site() &&
+				apply_filters('fw:ext:backups:multisite_disabled', false)
+			);
+
+			FW_Cache::set($cache_key, $is_disabled);
+
+			return $is_disabled;
+		}
+	}
+
 	protected function _init() {
 		{
-			add_action('admin_enqueue_scripts', array($this, '_action_enqueue_scripts'));
-			add_action('admin_menu', array($this, '_action_admin_menu'));
+			if (!$this->is_disabled()) {
+				add_action('admin_menu', array($this, '_action_admin_menu'));
+				add_action('current_screen',  array($this, '_action_download'));
+				add_action('admin_enqueue_scripts', array($this, '_action_enqueue_scripts'));
+
+				add_action('wp_ajax_' . self::$wp_ajax_action_status,  array($this, '_action_ajax_status'));
+				add_action('wp_ajax_' . self::$wp_ajax_action_backup,  array($this, '_action_ajax_backup'));
+				add_action('wp_ajax_' . self::$wp_ajax_action_restore, array($this, '_action_ajax_restore'));
+				add_action('wp_ajax_' . self::$wp_ajax_action_delete,  array($this, '_action_ajax_delete'));
+			}
+
 			add_action('network_admin_menu', array($this, '_action_admin_menu'));
-			add_action('current_screen',  array($this, '_action_download'));
-
-			add_action('wp_ajax_' . self::$wp_ajax_action_status,  array($this, '_action_ajax_status'));
-			add_action('wp_ajax_' . self::$wp_ajax_action_backup,  array($this, '_action_ajax_backup'));
-			add_action('wp_ajax_' . self::$wp_ajax_action_restore, array($this, '_action_ajax_restore'));
-			add_action('wp_ajax_' . self::$wp_ajax_action_delete,  array($this, '_action_ajax_delete'));
-
 			add_action('wp_ajax_nopriv_' . self::$wp_ajax_action_test,  array($this, '_action_ajax_test'));
 		}
 
