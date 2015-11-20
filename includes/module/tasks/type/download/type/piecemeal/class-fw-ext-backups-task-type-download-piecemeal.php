@@ -155,7 +155,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 		) {
 			return new WP_Error(
 				'invalid_position',
-				__('Invalid position', 'fw')
+				__('Invalid byte position', 'fw') .' (current: '. $state['position'] .', received: '. $position .')'
 			);
 		} elseif ($position > 0 && empty($response['body'])) {
 			return new WP_Error(
