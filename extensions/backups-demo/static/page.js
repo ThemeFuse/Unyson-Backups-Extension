@@ -91,8 +91,7 @@ jQuery(function($){
 					data.html,
 					{
 						allowClose: false,
-						updateIfCurrent: true,
-						backdrop: null
+						updateIfCurrent: true
 					}
 				);
 			} else {
@@ -107,8 +106,7 @@ jQuery(function($){
 					this.fwSoleModalId,
 					'<span class="fw-text-danger dashicons dashicons-warning"></span>',
 					{
-						allowClose: false,
-						backdrop: null
+						allowClose: false
 					}
 				);
 			}
@@ -160,10 +158,7 @@ jQuery(function($) {
 					} else {
 						fw.soleModal.show(
 							inst.fwLoadingId,
-							'<h3 class="fw-text-danger">'+ data.active_demo.result +'</h3>',
-							{
-								backdrop: false
-							}
+							'<h3 class="fw-text-danger">'+ data.active_demo.result +'</h3>'
 						);
 					}
 				}
@@ -203,20 +198,14 @@ jQuery(function($) {
 						} else {
 							fw.soleModal.show(
 								'fw-ext-backups-demo-install-error',
-								((r.data && r.data.length) ? r.data[0].message : ''),
-								{
-									backdrop: false
-								}
+								((r.data && r.data.length) ? r.data[0].message : '')
 							);
 						}
 					})
 					.fail(function(jqXHR, textStatus, errorThrown){
 						fw.soleModal.show(
 							'fw-ext-backups-demo-install-error',
-							'<h2>Ajax error</h2>'+ '<p>'+ String(errorThrown) +'</p>',
-							{
-								backdrop: false
-							}
+							'<h2>Ajax error</h2>'+ '<p>'+ String(errorThrown) +'</p>'
 						);
 					})
 					.always(function(data_jqXHR, textStatus, jqXHR_errorThrown){
