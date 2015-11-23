@@ -39,7 +39,7 @@ $active_collection = $backups->tasks()->get_active_task_collection();
 	<em class="fw-text-muted"><?php esc_html_e('Pending', 'fw') ?></em>
 <?php endif; ?>
 
-<?php if ($active_collection->is_cancelable()): ?>
+<?php if ($active_collection && $active_collection->is_cancelable()): ?>
 	<a href="#" onclick="fwEvents.trigger('fw:ext:backups-demo:cancel'); return false;"><em><?php
 		esc_html_e('Cancel', 'fw');
 	?></em></a>

@@ -219,6 +219,9 @@ jQuery(function($) {
 	inst.init();
 });
 
+/**
+ * "Cancel" functionality
+ */
 jQuery(function($){
 	var inst = {
 		localized: _fw_ext_backups_demo,

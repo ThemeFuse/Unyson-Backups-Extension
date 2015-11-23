@@ -29,6 +29,7 @@ class FW_Extension_Backups extends FW_Extension {
 	private static $wp_ajax_action_backup  = 'fw:ext:backups:backup';
 	private static $wp_ajax_action_restore = 'fw:ext:backups:restore';
 	private static $wp_ajax_action_delete  = 'fw:ext:backups:delete';
+	private static $wp_ajax_action_cancel  = 'fw:ext:backups:cancel';
 
 	private static $wp_ajax_action_test    = 'fw:ext:backups:test';
 
@@ -102,6 +103,7 @@ class FW_Extension_Backups extends FW_Extension {
 				add_action('wp_ajax_' . self::$wp_ajax_action_backup,  array($this, '_action_ajax_backup'));
 				add_action('wp_ajax_' . self::$wp_ajax_action_restore, array($this, '_action_ajax_restore'));
 				add_action('wp_ajax_' . self::$wp_ajax_action_delete,  array($this, '_action_ajax_delete'));
+				add_action('wp_ajax_' . self::$wp_ajax_action_cancel,  array($this, '_action_ajax_cancel'));
 			}
 
 			add_action('network_admin_menu', array($this, '_action_admin_menu'));
@@ -204,6 +206,7 @@ class FW_Extension_Backups extends FW_Extension {
 						'ajax_action_backup'  => self::$wp_ajax_action_backup,
 						'ajax_action_restore' => self::$wp_ajax_action_restore,
 						'ajax_action_delete'  => self::$wp_ajax_action_delete,
+						'ajax_action_cancel'  => self::$wp_ajax_action_cancel,
 					)
 				)
 			);
@@ -355,6 +358,21 @@ class FW_Extension_Backups extends FW_Extension {
 		}
 
 		if (@unlink($archives[ $filename ]['path'])) {
+			wp_send_json_success();
+		} else {
+			wp_send_json_error();
+		}
+	}
+
+	/**
+	 * @internal
+	 */
+	public function _action_ajax_cancel() {
+		if (!current_user_can($this->get_capability())) {
+			wp_send_json_error(new WP_Error('denied', 'Access Denied'));
+		}
+
+		if ($this->tasks()->do_cancel()) {
 			wp_send_json_success();
 		} else {
 			wp_send_json_error();

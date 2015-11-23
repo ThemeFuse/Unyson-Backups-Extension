@@ -498,3 +498,59 @@ jQuery(function($){
 
 	inst.init();
 });
+
+/**
+ * "Cancel" functionality
+ */
+jQuery(function($){
+	var inst = {
+		localized: _fw_ext_backups_localized,
+		isBusy: false,
+		fwLoadingId: 'fw-ext-backups-cancel',
+		doCancel: function(){
+			if (this.isBusy) {
+				return;
+			} else {
+				this.isBusy = true;
+			}
+
+			inst.isBusy = true;
+			fw.loading.show(inst.fwLoadingId);
+
+			$.ajax({
+					url: ajaxurl,
+					data: {
+						action: inst.localized.ajax_action_cancel
+					},
+					type: 'POST',
+					dataType: 'json'
+				})
+				.done(function(r){
+					if (r.success) {
+						fwEvents.trigger('fw:ext:backups:status:do-update');
+					} else {
+						console.warn('Cancel failed');
+					}
+				})
+				.fail(function(jqXHR, textStatus, errorThrown){
+					fw.soleModal.show(
+						'fw-ext-backups-demo-install-error',
+						'<h2>Ajax error</h2>'+ '<p>'+ String(errorThrown) +'</p>'
+					);
+				})
+				.always(function(data_jqXHR, textStatus, jqXHR_errorThrown){
+					inst.isBusy = false;
+					fw.loading.hide(inst.fwLoadingId);
+				});
+		},
+		init: function(){
+			var that = this;
+
+			fwEvents.on('fw:ext:backups:cancel', function(){
+				that.doCancel();
+			});
+		}
+	};
+
+	inst.init();
+});
