@@ -17,7 +17,7 @@ $page_url = $backups->get_page_url();
 				<strong><?php _e( 'Important', 'fw' ); ?></strong>:
 				<?php printf(
 					__( 'You need to activate %s.', 'fw' ),
-					'<a href="http://php.net/manual/en/book.zip.php">'. __('zip extension', 'fw') .'</a>'
+					'<a href="http://php.net/manual/en/book.zip.php" target="_blank">'. __('zip extension', 'fw') .'</a>'
 				); ?>
 			</p>
 		</div>

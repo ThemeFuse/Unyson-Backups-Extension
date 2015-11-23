@@ -21,6 +21,26 @@ if ($backups->is_disabled()) {
 ?>
 <h2><?php esc_html_e('Demo Content Install', 'fw') ?></h2>
 
+<div>
+	<?php if ( !class_exists('ZipArchive') ): ?>
+		<div class="error below-h2">
+			<p>
+				<strong><?php _e( 'Important', 'fw' ); ?></strong>:
+				<?php printf(
+					__( 'You need to activate %s.', 'fw' ),
+					'<a href="http://php.net/manual/en/book.zip.php" target="_blank">'. __('zip extension', 'fw') .'</a>'
+				); ?>
+			</p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ($http_loopback_warning = fw_ext_backups_loopback_test()) : ?>
+		<div class="error">
+			<p><strong><?php _e( 'Important', 'fw' ); ?>:</strong> <?php echo $http_loopback_warning; ?></p>
+		</div>
+	<?php endif; ?>
+</div>
+
 <p></p>
 <div class="theme-browser rendered" id="fw-ext-backups-demo-list">
 <?php foreach ($demos as $demo): ?>
