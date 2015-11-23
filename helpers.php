@@ -21,6 +21,8 @@ function fw_ext_backups_loopback_test() {
 
 	if (is_wp_error($response)) {
 		$error = $response->get_error_message();
+	} elseif(200 !== ($response_code = intval(wp_remote_retrieve_response_code($response)))) {
+		$error = sprintf(esc_html__('Response code: %d', 'fw'), $response_code);
 	} elseif (
 		isset($response['body'])
 		&&
@@ -42,10 +44,7 @@ function fw_ext_backups_loopback_test() {
 			'HTTP Loopback Connections are not enabled on this server. ' .
 			'If you need to contact your web host, '
 			. 'tell them that when PHP tries to connect back to the site '
-			. 'at the URL `{url}` via curl (or other fallback connection method built into WordPress) '
-			. 'it gets the error `{error}`. '
-			. 'This means that WordPress\' built-in simulated cron system cannot function properly, '
-			. 'breaking some WordPress features & subsequently some plugins. '
+			. 'at the URL `{url}` and it gets the error `{error}`. '
 			. 'There may be a problem with the server configuration (eg local DNS problems, mod_security, etc) '
 			. 'preventing connections from working properly.',
 			'fw'
