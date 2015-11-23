@@ -7,6 +7,7 @@
  */
 
 $backups = fw_ext( 'backups' ); /** @var FW_Extension_Backups $backups */
+$active_collection = $backups->tasks()->get_active_task_collection();
 ?>
 <?php if ($install_is_executing): ?>
 	<h2 class="fw-text-muted">
@@ -36,4 +37,10 @@ $backups = fw_ext( 'backups' ); /** @var FW_Extension_Backups $backups */
 <?php elseif ($install_is_pending): ?>
 	<p><img src="<?php echo get_site_url() ?>/wp-admin/images/spinner.gif" alt="Loading"></p>
 	<em class="fw-text-muted"><?php esc_html_e('Pending', 'fw') ?></em>
+<?php endif; ?>
+
+<?php if ($active_collection->is_cancelable()): ?>
+	<a href="#" onclick="fwEvents.trigger('fw:ext:backups-demo:cancel'); return false;"><em><?php
+		esc_html_e('Cancel', 'fw');
+	?></em></a>
 <?php endif; ?>

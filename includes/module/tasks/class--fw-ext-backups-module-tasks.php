@@ -831,6 +831,26 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		$this->execute_task_collection($collection);
 	}
 
+	public function do_cancel() {
+		if ($this->get_executing_task()) {
+			return false;
+		}
+
+		if (
+			($collection = $this->get_active_task_collection())
+			&&
+		    $collection->is_cancelable()
+		) {
+			// ok
+		} else {
+			return false;
+		}
+
+		$this->set_active_task_collection(null);
+
+		return true;
+	}
+
 	/**
 	 * @param bool $exclude
 	 * @param string $option_name

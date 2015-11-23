@@ -103,6 +103,20 @@ final class FW_Ext_Backups_Task_Collection {
 	}
 
 	/**
+	 * If none of the task has executed and the entire collection can be cancelled
+	 * @return bool
+	 */
+	public function is_cancelable() {
+		return (
+			($tasks = $this->get_tasks())
+			&&
+			($first_task = reset($tasks))
+			&&
+			!$first_task->get_last_execution_start_time()
+		);
+	}
+
+	/**
 	 * @return array
 	 * @since 2.0.0
 	 */

@@ -8,7 +8,8 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 	private static $demos;
 
 	private static $wp_ajax_install = 'fw:ext:backups-demo:install';
-	private static $wp_ajax_status = 'fw:ext:backups-demo:status';
+	private static $wp_ajax_status  = 'fw:ext:backups-demo:status';
+	private static $wp_ajax_cancel  = 'fw:ext:backups-demo:cancel';
 
 	private static $task_collection_id = 'demo-content-install';
 
@@ -63,6 +64,10 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		add_action(
 			'wp_ajax_'. self::$wp_ajax_install,
 			array($this, '_action_ajax_install')
+		);
+		add_action(
+			'wp_ajax_'. self::$wp_ajax_cancel,
+			array($this, '_action_ajax_cancel')
 		);
 
 		add_filter(
@@ -224,6 +229,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 					'ajax_action' => array(
 						'install' => self::$wp_ajax_install,
 						'status' => self::$wp_ajax_status,
+						'cancel' => self::$wp_ajax_cancel,
 					),
 				)
 			);
@@ -336,6 +342,21 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		$this->do_install($demo);
 
 		wp_send_json_success();
+	}
+
+	public function _action_ajax_cancel() {
+		if (!current_user_can(self::backups()->get_capability())) {
+			wp_send_json_error(new WP_Error(
+				'forbidden',
+				__('Forbidden', 'fw')
+			));
+		}
+
+		if (self::backups()->tasks()->do_cancel()) {
+			wp_send_json_success();
+		} else {
+			wp_send_json_error();
+		}
 	}
 
 	private function do_install(FW_Ext_Backups_Demo $demo) {
