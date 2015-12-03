@@ -459,4 +459,18 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 	public function _action_tasks_success(FW_Ext_Backups_Task_Collection $collection) {
 		$this->set_active_demo(array('result' => true));
 	}
+
+	/**
+	 * @param FW_Access_Key $access_Key
+	 * @return int
+	 * @internal
+	 * @since 2.0.3
+	 */
+	public function _get_demos_count(FW_Access_Key $access_Key) {
+		if ($access_Key->get_key() !== 'fw:ext:backups-demo:helper:count') {
+			trigger_error('Method call denied', E_USER_ERROR);
+		}
+
+		return count($this->get_demos());
+	}
 }
