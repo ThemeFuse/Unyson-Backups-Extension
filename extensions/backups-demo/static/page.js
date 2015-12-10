@@ -106,7 +106,8 @@ jQuery(function($){
 					this.fwSoleModalId,
 					'<span class="fw-text-danger dashicons dashicons-warning"></span>',
 					{
-						allowClose: false
+						allowClose: false,
+						updateIfCurrent: true
 					}
 				);
 			}

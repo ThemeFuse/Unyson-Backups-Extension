@@ -113,7 +113,12 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 				);
 			}
 
-			$zip->close();
+			if ($zip->close() !== true) {
+				return new WP_Error(
+					'zip_close_failed',
+					__('Failed to close the zip after extract', 'fw')
+				);
+			}
 
 			return true;
 		}
