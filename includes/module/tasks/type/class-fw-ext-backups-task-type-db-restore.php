@@ -526,6 +526,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								$value_max_length = 500000;
 								$update_count = 0;
 								$index_column_value = $line['data']['row'][ $index_column ];
+								$row_lengths = array();
 
 								while ($line['data']['row']) {
 									$row = array();
@@ -538,11 +539,22 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 										$row_length = mb_strlen($row[ $column_name ]);
 
+										if (!isset($row_lengths[$column_name])) {
+											$row_lengths[ $column_name ] = mb_strlen( $line['data']['row'][ $column_name ] );
+										}
+
 										/**
 										 * The string was cut between a slashed character, for e.g. \" or \\
 										 * Append next characters until the slashing is closed
 										 */
-										while (($last_char = mb_substr($row[ $column_name ], -1)) === '\\') {
+										while (
+											($last_char = mb_substr($row[ $column_name ], -1)) === '\\'
+											&&
+											/**
+											 * Prevent infinite loop when the last character is a slash
+											 */
+											$row_length < $row_lengths[ $column_name ]
+										) {
 											$row[ $column_name ] .= mb_substr(
 												$line['data']['row'][ $column_name ],
 												$row_length - 1, 1
