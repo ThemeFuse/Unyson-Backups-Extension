@@ -48,7 +48,14 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	public function get_timeout() {
-		return (int)ini_get('max_execution_time');
+		$timeout = (int)ini_get('max_execution_time');
+
+		if ($timeout < 1) {
+			// Timeout 0 messes up the tasks execution verification logic
+			$timeout = $this->get_config('max_timeout');
+		}
+
+		return $timeout;
 	}
 
 	public function get_page_slug() {
