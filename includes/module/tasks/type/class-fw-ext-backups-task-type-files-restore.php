@@ -130,7 +130,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 
 			global $wp_filesystem; /** @var WP_Filesystem_Base $wp_filesystem */
 
-			if (!$wp_filesystem) {
+			if (!$wp_filesystem || (is_wp_error($wp_filesystem->errors) && $wp_filesystem->errors->get_error_code())) {
 				return new WP_Error(
 					'fs_init_fail', __('Filesystem init failed', 'fw')
 				);
