@@ -32,24 +32,7 @@ function fw_ext_backups_loopback_test() {
 		&&
 		true === $response_json['success']
 	) {
-		$response = wp_remote_post( $url, array(
-			/**
-			 * The request should start (in background) and current request should (continue and) stop
-			 * without stopping the started background request execution
-			 */
-			'blocking' => false,
-			'timeout' => 0.01, /** @see spawn_cron() */
-			'sslverify' => false,
-			'body' => array(
-				'action' => $backups->_get_test_ajax_action(),
-			),
-		) );
-
-		if (is_wp_error($response)) {
-			$error = $response->get_error_message();
-		} else {
-			return false;
-		}
+		return false;
 	} else {
 		$error = __('Invalid JSON response', 'fw');
 	}
