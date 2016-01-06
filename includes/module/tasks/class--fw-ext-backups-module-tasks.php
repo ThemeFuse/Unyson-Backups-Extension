@@ -847,6 +847,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		}
 
 		$this->set_active_task_collection(null);
+		file_put_contents($this->get_executed_tasks_path(), '');
 
 		return true;
 	}

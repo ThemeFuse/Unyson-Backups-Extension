@@ -50,8 +50,11 @@ class FW_Extension_Backups extends FW_Extension {
 	public function get_timeout() {
 		$timeout = (int)ini_get('max_execution_time');
 
-		if ($timeout < 1) {
-			// Timeout 0 messes up the tasks execution verification logic
+		/**
+		 * Fix timeout value
+		 * For e.g. timeout 0 messes up the tasks execution verification logic
+		 */
+		if ($timeout < 1 || $timeout > $this->get_config('max_timeout')) {
 			$timeout = $this->get_config('max_timeout');
 		}
 
