@@ -278,6 +278,7 @@ jQuery(function($){
 
 /**
  * If loopback request failed, execute steps via ajax
+ * @since 2.0.5
  */
 jQuery(function($){
 	if (typeof fw_ext_backups_loopback_failed == 'undefined') {

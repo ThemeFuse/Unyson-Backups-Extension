@@ -42,6 +42,9 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			'wp_ajax_nopriv_' . self::$wp_ajax_action,
 			array($this, '_action_ajax_continue_pending_task')
 		);
+		/**
+		 * @since 2.0.5
+		 */
 		add_action(
 			'wp_ajax_' . self::$wp_ajax_action,
 			array($this, '_action_ajax_continue_pending_task')
@@ -657,8 +660,10 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 		$result = $this->execute_pending_task();
 
-		if (empty($_SERVER['HTTP_REFERER'])) { // background/loopback request
+		if (empty($_SERVER['HTTP_REFERER'])) {
 			/**
+			 * Background/Loopback request
+			 *
 			 * Do not make any output to prevent non-blocking request cancel
 			 *
 			 * > a broken pipe due to client aborting the connection doesn't stop execution right away,
@@ -666,7 +671,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			 * http://php.net/manual/en/function.ignore-user-abort.php
 			 */
 			exit;
-		} else { // regular ajax request from browser
+		} else {
+			/**
+			 * Regular ajax request from browser
+			 * @since 2.0.5
+			 */
 			if ($result) {
 				wp_send_json_success();
 			} else {
