@@ -7,7 +7,7 @@ function fw_ext_backups_loopback_test() {
 	/** @var FW_Extension_Backups $backups */
 	$backups = fw_ext('backups');
 
-	$url = admin_url( 'admin-ajax.php' );
+	$url = site_url( 'wp-admin/admin-ajax.php' );
 
 	$response = wp_remote_post($url, array(
 		'blocking'  => true,
