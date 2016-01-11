@@ -275,3 +275,58 @@ jQuery(function($){
 
 	inst.init();
 });
+
+/**
+ * If loopback request failed, execute steps via ajax
+ */
+jQuery(function($){
+	if (typeof fw_ext_backups_loopback_failed == 'undefined') {
+		return;
+	}
+
+	var inst = {
+		running: false,
+		isBusy: false,
+		onUpdate: function(data) {
+			this.running = data.is_busy;
+			this.executeNextStep(data.ajax_steps.token, data.ajax_steps.active_tasks_hash);
+		},
+		executeNextStep: function(token, activeTasksHash){
+			if (!this.running || this.isBusy) {
+				return false;
+			}
+
+			this.isBusy = true;
+
+			$.ajax({
+					url: ajaxurl,
+					data: {
+						action: 'fw:ext:backups:continue-pending-task',
+						token: token,
+						active_tasks_hash: activeTasksHash
+					},
+					type: 'POST',
+					dataType: 'json'
+				})
+				.done(function(r){ console.log(r);
+					if (r.success) {
+						fwEvents.trigger('fw:ext:backups-demo:status:do-update');
+					} else {
+						console.error('Ajax execution failed');
+						// execution will try to continue on next (auto) update
+					}
+				})
+				.fail(_.bind(function(jqXHR, textStatus, errorThrown){
+					console.error('Ajax error: '+ String(errorThrown));
+				}, this))
+				.always(_.bind(function(data_jqXHR, textStatus, jqXHR_errorThrown){
+					this.isBusy = false;
+				}, this));
+		},
+		init: function(){
+			fwEvents.on('fw:ext:backups-demo:status:update', _.bind(this.onUpdate, this));
+		}
+	};
+
+	inst.init();
+});

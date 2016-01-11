@@ -38,6 +38,7 @@ if ($backups->is_disabled()) {
 		<div class="error">
 			<p><strong><?php _e( 'Important', 'fw' ); ?>:</strong> <?php echo $http_loopback_warning; ?></p>
 		</div>
+		<script type="text/javascript">var fw_ext_backups_loopback_failed = true;</script>
 	<?php endif; ?>
 </div>
 

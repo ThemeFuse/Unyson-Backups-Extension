@@ -307,7 +307,18 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 					'executing_task' => self::backups()->tasks()->get_executing_task(),
 					'pending_task' => self::backups()->tasks()->get_pending_task(),
 				))
-				: ''
+				: '',
+			'ajax_steps' => array(
+				'token' => md5(
+					defined('NONCE_SALT')
+						? NONCE_SALT
+						: self::backups()->manifest->get_version()
+				),
+				'active_tasks_hash' => (($collection = self::backups()->tasks()->get_active_task_collection())
+					? md5(serialize($collection))
+					: ''
+				)
+			),
 		));
 	}
 

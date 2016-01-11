@@ -42,6 +42,10 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			'wp_ajax_nopriv_' . self::$wp_ajax_action,
 			array($this, '_action_ajax_continue_pending_task')
 		);
+		add_action(
+			'wp_ajax_' . self::$wp_ajax_action,
+			array($this, '_action_ajax_continue_pending_task')
+		);
 
 		add_filter(
 			'fw_ext_backups_db_export_exclude_option',
@@ -629,7 +633,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				defined('NONCE_SALT') ? NONCE_SALT : self::backups()->manifest->get_version()
 			)
 		) {
-			wp_send_json_error();
+			wp_send_json_error(new WP_Error('invalid_token', __('Invalid token', 'fw')));
 		}
 
 		/**
@@ -648,19 +652,27 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			!==
 			$_POST['active_tasks_hash']
 		) {
-			wp_send_json_error();
+			wp_send_json_error(new WP_Error('invalid_tasks_hash', __('Invalid tasks hash', 'fw')));
 		}
 
-		$this->execute_pending_task();
+		$result = $this->execute_pending_task();
 
-		/**
-		 * Do not make any output to prevent non-blocking request cancel
-		 *
-		 * > a broken pipe due to client aborting the connection doesn't stop execution right away,
-		 * > only at the point you next try to write to the script output
-		 * http://php.net/manual/en/function.ignore-user-abort.php
-		 */
-		exit;
+		if (empty($_SERVER['HTTP_REFERER'])) { // background/loopback request
+			/**
+			 * Do not make any output to prevent non-blocking request cancel
+			 *
+			 * > a broken pipe due to client aborting the connection doesn't stop execution right away,
+			 * > only at the point you next try to write to the script output
+			 * http://php.net/manual/en/function.ignore-user-abort.php
+			 */
+			exit;
+		} else { // regular ajax request from browser
+			if ($result) {
+				wp_send_json_success();
+			} else {
+				wp_send_json_error();
+			}
+		}
 	}
 
 	/**
