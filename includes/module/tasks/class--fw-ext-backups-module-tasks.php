@@ -570,7 +570,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 		$http = new WP_Http();
 		$http->post(
-			admin_url( 'admin-ajax.php' ),
+			site_url( 'wp-admin/admin-ajax.php' ),
 			array(
 				/**
 				 * The request should start (in background) and current request should (continue and) stop
