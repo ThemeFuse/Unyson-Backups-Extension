@@ -23,7 +23,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 					'no_uploads_dir', __('Uploads dir not specified', 'fw')
 				);
 			} else {
-				$args['uploads_dir'] = fw_fix_path($args['source_dirs']);
+				$args['uploads_dir'] = fw_fix_path($args['uploads_dir']);
 
 				if (!file_exists($args['uploads_dir'])) {
 					/**

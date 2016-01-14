@@ -28,6 +28,12 @@ function _action_fw_ext_backups_register_built_in_task_types(_FW_Ext_Backups_Tas
 	require_once $dir .'/class-fw-ext-backups-task-type-files-restore.php';
 	$task_types->register(new FW_Ext_Backups_Task_Type_Files_Restore());
 
+	require_once $dir .'/class-fw-ext-backups-task-type-image-sizes-remove.php';
+	$task_types->register(new FW_Ext_Backups_Task_Type_Image_Sizes_Remove());
+
+	require_once $dir .'/class-fw-ext-backups-task-type-image-sizes-restore.php';
+	$task_types->register(new FW_Ext_Backups_Task_Type_Image_Sizes_Restore());
+
 	require_once $dir .'/download/class-fw-ext-backups-task-type-download.php';
 	$task_types->register(new FW_Ext_Backups_Task_Type_Download());
 }

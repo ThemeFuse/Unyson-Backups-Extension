@@ -47,11 +47,6 @@ final class FW_Ext_Backups_Task_Collection {
 
 			$this->tasks[] = $task;
 
-			/**
-			 * @since 2.0.5
-			 */
-			do_action('fw:ext:backups:tasks:task:add:after', $task, $this);
-
 			return true;
 		}
 	}

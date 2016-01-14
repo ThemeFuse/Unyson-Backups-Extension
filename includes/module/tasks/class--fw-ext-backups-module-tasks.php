@@ -763,6 +763,15 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'exclude_paths' => array(),
 			)
 		));
+		if (!$full) {
+			$collection->add_task(new FW_Ext_Backups_Task(
+				$id_prefix .'image-sizes-remove',
+				'image-sizes-remove',
+				array(
+					'uploads_dir' => $tmp_dir .'/f/uploads',
+				)
+			));
+		}
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'zip',
 			'zip',
@@ -841,6 +850,13 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'full' => $full,
 			))
 		);
+		if (!$full) {
+			$collection->add_task(new FW_Ext_Backups_Task(
+				$id_prefix .'image-sizes-restore',
+				'image-sizes-restore',
+				array()
+			));
+		}
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'tmp-dir-clean:after',
 			'dir-clean',
