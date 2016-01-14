@@ -73,6 +73,9 @@ class FW_Ext_Backups_Task_Type_Unzip extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		wp_cache_flush();
+		FW_Cache::clear();
+
 		$zip->extractTo($args['dir']);
 
 		$zip->close();

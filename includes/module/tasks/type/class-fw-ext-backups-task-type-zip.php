@@ -88,6 +88,9 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		wp_cache_flush();
+		FW_Cache::clear();
+
 		// Zip archive will be created only after closing object
 		if (!$zip->close()) {
 			return new WP_Error(
