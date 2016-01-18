@@ -33,6 +33,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 				}
 			}
 		}
+
 		if (empty($state)) {
 			$state = array(
 				// The attachment at which the execution stopped and will continue in next request
@@ -52,22 +53,51 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 			"LIMIT 7"
 		), " \n");
 
+		$wp_uploads_dir = wp_upload_dir();
+		$wp_uploads_dir_length = mb_strlen($wp_uploads_dir['basedir']);
+
 		$started_time = time();
 		$timeout = $backups->get_timeout() - 7;
 
 		while (time() - $started_time < $timeout) {
 			$attachments = $wpdb->get_results( $wpdb->prepare(
-				$sql,
-				$wpdb->esc_like('image/').'%',
-				$state['attachment_id'] ), ARRAY_A );
-
+				$sql, $wpdb->esc_like('image/').'%', $state['attachment_id']
+			), ARRAY_A );
 
 			if (empty($attachments)) {
 				return true;
 			}
 
 			foreach ($attachments as $attachment) {
-				$this->remove_intermediate_images($attachment['ID'], $args['uploads_dir']);
+				if (
+					($meta = wp_get_attachment_metadata( $attachment['ID'] ))
+					&&
+					isset( $meta['sizes'] )
+					&&
+					is_array( $meta['sizes'] )
+				) {
+					$attachment_path = get_attached_file( $attachment['ID'] );
+					$filename_length = mb_strlen( basename( $attachment_path ) );
+
+					foreach ( $meta['sizes'] as $size => $sizeinfo ) {
+						// replace wp_uploads_dir path
+						$file_path = $args['uploads_dir'] . mb_substr($attachment_path, $wp_uploads_dir_length);
+						// replace file name with resize name
+						$file_path = mb_substr($file_path, 0, -$filename_length) . $sizeinfo['file'];
+
+						if (file_exists($file_path)) {
+							@unlink( $file_path );
+						}
+					}
+				}
+
+				if ( is_array( $backup_sizes = get_post_meta( $attachment['ID'], '_wp_attachment_backup_sizes', true ) ) ) {
+					foreach ( $backup_sizes as $size ) {
+						$del_file = path_join( dirname( $meta['file'] ), $size['file'] );
+
+						@unlink( path_join($args['uploads_dir'], $del_file) );
+					}
+				}
 			}
 
 			$state['attachment_id'] = $attachment['ID'];
@@ -75,28 +105,4 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 
 		return $state;
 	}
-
-	public function remove_intermediate_images( $id , $uploads_dir) {
-		$meta         = wp_get_attachment_metadata( $id );
-		$backup_sizes = get_post_meta( $id, '_wp_attachment_backup_sizes', true );
-		$file         = get_attached_file( $id );
-		$wp_uploads_dir = wp_upload_dir();
-
-		// Remove intermediate and backup images if there are any.
-		if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
-			foreach ( $meta['sizes'] as $size => $sizeinfo ) {
-				$file_path = $uploads_dir . preg_replace('/^'. preg_quote(fw_fix_path($wp_uploads_dir['basedir']), '/') .'/', '', $file);
-				$intermediate_file = str_replace( basename( $file ), $sizeinfo['file'], $file_path );
-				@unlink($intermediate_file);
-			}
-		}
-		if ( is_array( $backup_sizes ) ) {
-			foreach ( $backup_sizes as $size ) {
-				$del_file    = path_join( dirname( $meta['file'] ), $size['file'] );
-
-				@ unlink( path_join($uploads_dir, $del_file) );
-			}
-		}
-	}
-
 }
