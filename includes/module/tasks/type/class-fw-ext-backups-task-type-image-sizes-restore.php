@@ -23,9 +23,6 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			);
 		}
 
-		$upload_dir = wp_upload_dir();
-		$upload_dir = fw_fix_path($upload_dir['basedir']);
-
 		/**
 		 * @var WPDB $wpdb
 		 */
@@ -43,16 +40,20 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 
 		while (time() - $started_time < $timeout) {
 			$attachments = $wpdb->get_results( $wpdb->prepare(
-				$sql,
-				$wpdb->esc_like('image/').'%',
-				$state['attachment_id'] ), ARRAY_A );
+				$sql, $wpdb->esc_like('image/').'%', $state['attachment_id']
+			), ARRAY_A );
 
 			if (empty($attachments)) {
 				return true;
 			}
 
 			foreach ($attachments as $attachment) {
-				$this->generate_intermediate_images($attachment);
+				if ( file_exists( $file = get_attached_file( $attachment['ID'] ) ) ) {
+					wp_update_attachment_metadata(
+						$attachment['ID'],
+						wp_generate_attachment_metadata( $attachment['ID'], $file )
+					);
+				}
 			}
 
 			$state['attachment_id'] = $attachment['ID'];
@@ -60,15 +61,4 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 
 		return $state;
 	}
-
-	public function generate_intermediate_images( $attachment ) {
-		$attachment_id = $attachment['ID'];
-		$file          = get_attached_file( $attachment_id );
-
-		if ( file_exists( $file ) ) {
-			$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-			wp_update_attachment_metadata( $attachment_id, $metadata );
-		}
-	}
-
 }
