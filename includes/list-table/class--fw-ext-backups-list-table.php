@@ -63,6 +63,37 @@ class _FW_Ext_Backups_List_Table extends FW_WP_List_Table
 
 			$filename_hash = md5($filename);
 
+			{
+				$details = array();
+
+				$details[] = $archive['full'] ? __('Full Backup', 'fw') : __('Content Backup', 'fw');
+
+				if (function_exists('fw_human_bytes')) {
+					$details[] = fw_human_bytes(filesize($archive['path']));
+				}
+
+				$details[] = fw_html_tag('a', array(
+					'href' => $backups->get_download_link($filename),
+					'target' => '_blank',
+					'id' => 'download-'. $filename_hash,
+					'data-download-file' => $filename,
+				), esc_html__('Download', 'fw'));
+
+				$details[] = fw_html_tag('a', array(
+					'href' => '#',
+					'onclick' => 'return false;',
+					'id' => 'delete-'. $filename_hash,
+					'data-delete-file' => $filename,
+					'data-confirm' => __(
+						"Warning! \n".
+						"You are about to delete a backup, it will be lost forever. \n".
+						"Are you sure?",
+						'fw'
+					)
+				), esc_html__('Delete', 'fw'));
+			}
+
+
 			$this->items[] = array(
 				'cb' => fw_html_tag('input', array(
 					'type' => 'radio',
@@ -72,29 +103,7 @@ class _FW_Ext_Backups_List_Table extends FW_WP_List_Table
 				)),
 				'details' =>
 					'<div>'. $time .'</div>'.
-					'<div>'.
-						implode(' | ', array(
-							($archive['full'] ? __('Full Backup', 'fw') : __('Content Backup', 'fw')),
-							fw_html_tag('a', array(
-								'href' => $backups->get_download_link($filename),
-								'target' => '_blank',
-								'id' => 'download-'. $filename_hash,
-								'data-download-file' => $filename,
-							), esc_html__('Download', 'fw')),
-							fw_html_tag('a', array(
-								'href' => '#',
-								'onclick' => 'return false;',
-								'id' => 'delete-'. $filename_hash,
-								'data-delete-file' => $filename,
-								'data-confirm' => __(
-									"Warning! \n".
-									"You are about to delete a backup, it will be lost forever. \n".
-									"Are you sure?",
-									'fw'
-								)
-							), esc_html__('Delete', 'fw')),
-						)) .
-					'</div>',
+					'<div>'. implode(' | ', $details) .'</div>',
 			);
 		}
 	}
