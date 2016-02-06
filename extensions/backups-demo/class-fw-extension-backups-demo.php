@@ -372,14 +372,12 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 
 	private function do_install(FW_Ext_Backups_Demo $demo) {
 		$tmp_dir = self::backups()->get_tmp_dir();
-		$wp_upload_dir = wp_upload_dir();
-		$dirs = array('uploads' => fw_fix_path($wp_upload_dir['basedir']));
 		$id_prefix = 'demo:';
 
 		$collection = new FW_Ext_Backups_Task_Collection(self::$task_collection_id);
 
 		if (!self::backups()->is_disabled()) {
-			$collection = self::backups()->tasks()->add_backup_tasks( $collection, false );
+			$collection = self::backups()->tasks()->add_backup_tasks($collection);
 		}
 
 		$collection->set_title(__('Demo Content Install', 'fw'));
@@ -387,9 +385,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'tmp-dir-clean:before',
 			'dir-clean',
-			array(
-				'dir' => $tmp_dir
-			)
+			array('dir' => $tmp_dir)
 		));
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'demo-download',
@@ -400,28 +396,8 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 				'destination_dir' => $tmp_dir,
 			)
 		));
-		$collection->add_task(new FW_Ext_Backups_Task(
-			$id_prefix .'files-restore',
-			'files-restore',
-			array(
-				'source_dir' => $tmp_dir .'/f',
-				'destinations' => $dirs,
-			)
-		));
-		$collection->add_task(new FW_Ext_Backups_Task(
-			$id_prefix .'db-restore',
-			'db-restore',
-			array(
-				'dir' => $tmp_dir,
-			)
-		));
-		$collection->add_task(new FW_Ext_Backups_Task(
-			$id_prefix .'tmp-dir-clean:after',
-			'dir-clean',
-			array(
-				'dir' => $tmp_dir
-			)
-		));
+
+		self::backups()->tasks()->add_restore_tasks($collection);
 
 		$this->set_active_demo(array('id' => $demo->get_id(), 'result' => null));
 

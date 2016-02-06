@@ -792,47 +792,34 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 	}
 
 	/**
+	 * Add restore tasks to a collection
+	 * @param FW_Ext_Backups_Task_Collection $collection
 	 * @param bool $full
-	 */
-	public function do_backup($full = false) {
-		$this->execute_task_collection(
-			$this->add_backup_tasks(
-				new FW_Ext_Backups_Task_Collection(
-					($full ? 'full' : 'content') .'-backup'
-				),
-				$full
-			)
-		);
-	}
-
-	/**
-	 * @param bool $full
-	 * @param string $zip_path
+	 * @param string|null $zip_path
 	 * @param array $filesystem_args {}|{hostname: '', username: '', password: '', connection_type: ''}
+	 * @return FW_Ext_Backups_Task_Collection
 	 */
-	public function do_restore($full = false, $zip_path, $filesystem_args = array()) {
+	public function add_restore_tasks(
+		FW_Ext_Backups_Task_Collection $collection,
+		$full = false,
+		$zip_path = null,
+		$filesystem_args = array()
+	) {
 		$full = (bool)$full;
 		$tmp_dir = self::backups()->get_tmp_dir();
 		$dirs = $this->get_dirs($full);
 		$id_prefix = 'restore:';
 
-		$collection = new FW_Ext_Backups_Task_Collection('restore');
-
-		$collection->add_task(new FW_Ext_Backups_Task(
-			$id_prefix .'tmp-dir-clean:before',
-			'dir-clean',
-			array(
-				'dir' => $tmp_dir
-			)
-		));
-		$collection->add_task(new FW_Ext_Backups_Task(
-			$id_prefix .'unzip',
-			'unzip',
-			array(
-				'zip' => $zip_path,
-				'dir' => $tmp_dir,
-			))
-		);
+		if ($zip_path) {
+			$collection->add_task( new FW_Ext_Backups_Task(
+				$id_prefix . 'unzip',
+				'unzip',
+				array(
+					'zip' => $zip_path,
+					'dir' => $tmp_dir,
+				) )
+			);
+		}
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'files-restore',
 			'files-restore',
@@ -860,12 +847,46 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'tmp-dir-clean:after',
 			'dir-clean',
-			array(
-				'dir' => $tmp_dir
-			)
+			array('dir' => $tmp_dir)
 		));
 
-		$this->execute_task_collection($collection);
+		return $collection;
+	}
+
+	/**
+	 * @param bool $full
+	 */
+	public function do_backup($full = false) {
+		$this->execute_task_collection(
+			$this->add_backup_tasks(
+				new FW_Ext_Backups_Task_Collection(
+					($full ? 'full' : 'content') .'-backup'
+				),
+				$full
+			)
+		);
+	}
+
+	/**
+	 * @param bool $full
+	 * @param string $zip_path
+	 * @param array $filesystem_args {}|{hostname: '', username: '', password: '', connection_type: ''}
+	 */
+	public function do_restore($full = false, $zip_path, $filesystem_args = array()) {
+		$tmp_dir = self::backups()->get_tmp_dir();
+		$id_prefix = 'restore:';
+
+		$collection = new FW_Ext_Backups_Task_Collection(($full ? 'full' : 'content') .'-restore');
+
+		$collection->add_task(new FW_Ext_Backups_Task(
+			$id_prefix .'tmp-dir-clean:before',
+			'dir-clean',
+			array('dir' => $tmp_dir)
+		));
+
+		$this->execute_task_collection(
+			$this->add_restore_tasks($collection, $full, $zip_path, $filesystem_args)
+		);
 	}
 
 	public function do_cancel() {
