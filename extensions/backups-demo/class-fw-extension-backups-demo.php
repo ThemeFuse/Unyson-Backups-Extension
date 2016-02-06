@@ -413,8 +413,16 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			'db-restore',
 			array(
 				'dir' => $tmp_dir,
-			)
-		));
+				'full' => $full,
+			))
+		);
+		if (!$full) {
+			$collection->add_task(new FW_Ext_Backups_Task(
+				$id_prefix .'image-sizes-restore',
+				'image-sizes-restore',
+				array()
+			));
+		}
 		$collection->add_task(new FW_Ext_Backups_Task(
 			$id_prefix .'tmp-dir-clean:after',
 			'dir-clean',
