@@ -239,22 +239,10 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 
 			return true;
 		} else {
-			$paths = glob(
-				$dir
-				. '/{,.}[!.,!..]*', GLOB_MARK | GLOB_BRACE // http://stackoverflow.com/a/33059445
-			);
+			$files = array_diff(($files = scandir($dir)) ? $files : array(), array('.', '..'));
 
-			if (false === $paths) {
-				/*return new WP_Error(
-					'dir_list_failed',
-					sprintf(__('Failed to list dir: %s', 'fw'), $dir)
-				);*/
-				$paths = array();
-			}
-
-			foreach ($paths as $file_path) {
-				$file_path = fw_fix_path($file_path);
-				$file_name = basename( $file_path );
+			foreach ($files as $file_name) {
+				$file_path = $dir .'/'. $file_name;
 
 				if ($file_name{0} === '.' && !isset($included_hidden_names[$file_name])) {
 					continue;
@@ -381,22 +369,10 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 
 			return true;
 		} else {
-			$paths = glob(
-				$source_dir
-				. '/{,.}[!.,!..]*', GLOB_MARK | GLOB_BRACE // http://stackoverflow.com/a/33059445
-			);
+			$names = array_diff(($names = scandir($source_dir)) ? $names : array(), array('.', '..'));
 
-			if (false === $paths) {
-				/*return new WP_Error(
-					'dir_list_failed',
-					sprintf(__('Failed to list dir: %s', 'fw'), $source_dir)
-				);*/
-				$paths = array();
-			}
-
-			foreach ($paths as $file_path) {
-				$file_path = fw_fix_path($file_path);
-				$file_name = basename( $file_path );
+			foreach ($names as $file_name) {
+				$file_path = $source_dir .'/'. $file_name;
 				$destination_file_path = $destination_dir .'/'. $file_name;
 
 				if ($file_name{0} === '.' && !isset($included_hidden_names[$file_name])) {

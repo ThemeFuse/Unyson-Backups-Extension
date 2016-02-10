@@ -161,16 +161,13 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 		$rel_dir = empty($dirs) ? '' : '/'. implode('/', $dirs);
 		$included_hidden_names = fw_ext('backups')->get_config('included_hidden_names');
 
-		if ($paths = glob(
-			$root_dir . $rel_dir
-			. '/{,.}[!.,!..]*', GLOB_MARK | GLOB_BRACE // http://stackoverflow.com/a/33059445
-		)) {
+		if ($names = array_diff(($names = scandir($dir = $root_dir . $rel_dir)) ? $names : array(), array('.', '..'))) {
 			$files = array(); // result
 			$file_found = empty($previous_file); // find previous file and return next files
 			$count = 0;
 
-			foreach ($paths as $path) {
-				$file = basename($path);
+			foreach ($names as $file) {
+				$path = $dir .'/'. $file;
 
 				if (!$file_found) {
 					$file_found = ($file === $previous_file);

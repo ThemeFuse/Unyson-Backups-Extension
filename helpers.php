@@ -53,12 +53,10 @@ function fw_ext_backups_loopback_test() {
 }
 
 function fw_ext_backups_rmdir_recursive($dir) {
-	if (is_dir($dir)) {
-		if ($paths = glob(
-			$dir . '/{,.}[!.,!..]*', GLOB_MARK | GLOB_BRACE // http://stackoverflow.com/a/33059445
-		)) {
-			foreach ( $paths as $file ) {
-				$file = fw_fix_path( $file );
+	if (is_dir($dir = fw_fix_path($dir))) {
+		if ($files = array_diff(($files = scandir($dir)) ? $files : array(), array('.', '..'))) {
+			foreach ( $files as $file ) {
+				$file = $dir .'/'. $file;
 
 				if ( is_dir( $file ) ) {
 					if ( ! fw_ext_backups_rmdir_recursive( $file ) ) {
@@ -72,7 +70,7 @@ function fw_ext_backups_rmdir_recursive($dir) {
 			}
 		}
 
-		if (!rmdir($dir)) {
+		if ( ! rmdir($dir) ) {
 			return false;
 		}
 
