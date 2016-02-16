@@ -10,6 +10,15 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	/**
+	 * Even if we process only one image per request, some times happens that:
+	 * image is big and it has a lot of resizes and the script times out
+	 * {@inheritdoc}
+	 */
+	public function get_custom_timeout(array $args, array $state = array()) {
+		return fw_ext('backups')->get_config('max_timeout');
+	}
+
+	/**
 	 * {@inheritdoc}
 	 * @param array $args
 	 */
