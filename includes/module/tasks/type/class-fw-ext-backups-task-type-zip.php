@@ -84,7 +84,6 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		foreach ($files as $name => $file) {
 			if (!$file->isDir()) { // Skip directories (they would be added automatically)
 				if (($file_path = $file->getRealPath()) !== $zip_path) {
-					return new WP_Error('a', $file_path);
 					$zip->addFile(
 						$file_path,
 						substr(fw_fix_path($file_path), strlen($args['source_dir']) + 1) // relative
