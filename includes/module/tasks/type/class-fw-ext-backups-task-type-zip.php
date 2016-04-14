@@ -40,8 +40,10 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				return new WP_Error(
 					'no_source_dir', __('Source dir not specified', 'fw')
 				);
-			} else {
-				$args['source_dir'] = fw_fix_path($args['source_dir']);
+			} elseif (!file_exists($args['source_dir'] = fw_fix_path($args['source_dir']))) {
+				return new WP_Error(
+					'invalid_source_dir', __('Source dir does not exist', 'fw')
+				);
 			}
 
 			if (!isset($args['destination_dir'])) {
@@ -77,19 +79,30 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			RecursiveIteratorIterator::LEAVES_ONLY
 		);
 
+		$files_count = 0;
+
 		foreach ($files as $name => $file) {
 			if (!$file->isDir()) { // Skip directories (they would be added automatically)
 				if (($file_path = $file->getRealPath()) !== $zip_path) {
+					return new WP_Error('a', $file_path);
 					$zip->addFile(
 						$file_path,
 						substr(fw_fix_path($file_path), strlen($args['source_dir']) + 1) // relative
 					);
+					++$files_count;
 				}
 			}
 		}
 
 		wp_cache_flush();
 		FW_Cache::clear();
+
+		if (!$files_count) {
+			/**
+			 * Happens on Content Backup when uploads/ is empty
+			 */
+			return true;
+		}
 
 		// Zip archive will be created only after closing object
 		if (!$zip->close()) {
@@ -100,7 +113,8 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 
 		if (!rename($zip_path, $args['destination_dir'] .'/'. basename($zip_path))) {
 			return new WP_Error(
-				'cannot_move_zip', __('Cannot move zip in destination dir', 'fw')
+				'cannot_move_zip',
+				__('Cannot move zip in destination dir', 'fw')
 			);
 		}
 

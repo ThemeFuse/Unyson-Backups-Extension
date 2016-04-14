@@ -32,9 +32,9 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 					'no_source_dir', __('Source dir not specified', 'fw')
 				);
 			} else {
-				$args['source_dir'] = fw_fix_path(realpath($args['source_dir']));
+				$args['source_dir'] = fw_fix_path($args['source_dir']);
 
-				if (empty($args['source_dir'])) {
+				if (empty($args['source_dir']) || !file_exists($args['source_dir'])) {
 					return new WP_Error(
 						'invalid_source_dir', __('Invalid source dir', 'fw')
 					);

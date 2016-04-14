@@ -113,7 +113,7 @@ class FW_Ext_Backups_Task_Type_Download extends FW_Ext_Backups_Task_Type {
 				'no_destination_dir',
 				__('Destination dir not specified', 'fw')
 			);
-		} elseif (!($args['destination_dir'] = fw_fix_path(realpath($args['destination_dir'])))) {
+		} elseif (!($args['destination_dir'] = fw_fix_path($args['destination_dir']))) {
 			return new WP_Error(
 				'invalid_destination_dir',
 				__('Invalid destination dir', 'fw')

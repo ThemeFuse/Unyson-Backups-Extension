@@ -25,7 +25,7 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 					'no_source', __('Source dirs not specified', 'fw')
 				);
 			} else {
-				$args['source_dirs'] = array_map('fw_fix_path', array_filter(array_map('realpath', $args['source_dirs'])));
+				$args['source_dirs'] = array_filter(array_map('fw_fix_path', $args['source_dirs']), 'file_exists');
 			}
 
 			if (empty($args['destination'])) {

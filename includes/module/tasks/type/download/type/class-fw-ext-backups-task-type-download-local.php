@@ -23,7 +23,7 @@ class FW_Ext_Backups_Task_Type_Download_Local extends FW_Ext_Backups_Task_Type_D
 				'no_source',
 				__('Source not specified', 'fw')
 			);
-		} elseif (!($args['source'] = fw_fix_path(realpath($args['source'])))) {
+		} elseif (!file_exists($args['source'] = fw_fix_path($args['source']))) {
 			return new WP_Error(
 				'invalid_source',
 				__('Invalid source', 'fw')
