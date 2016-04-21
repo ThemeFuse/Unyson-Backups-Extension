@@ -53,7 +53,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		add_filter(
 			'fw_ext_backups_db_export_exclude_option',
 			array($this, '_filter_fw_ext_backups_db_exclude_option'),
-			10, 2);
+			10, 2
+		);
 		add_filter(
 			'fw_ext_backups_db_restore_exclude_option',
 			array($this, '_filter_fw_ext_backups_db_exclude_option'),
@@ -763,7 +764,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'exclude_paths' => array(),
 			)
 		));
-		if (!$full) {
+		if (
+			!$full
+			&&
+			apply_filters('fw:ext:backups:add-backup-task:image-sizes-remove', true, $collection)
+		) {
 			$collection->add_task(new FW_Ext_Backups_Task(
 				$id_prefix .'image-sizes-remove',
 				'image-sizes-remove',
@@ -837,7 +842,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'full' => $full,
 			))
 		);
-		if (!$full) {
+		if (
+			!$full
+		    &&
+		    apply_filters('fw:ext:backups:add-restore-task:image-sizes-restore', true, $collection)
+		) {
 			$collection->add_task(new FW_Ext_Backups_Task(
 				$id_prefix .'image-sizes-restore',
 				'image-sizes-restore',
