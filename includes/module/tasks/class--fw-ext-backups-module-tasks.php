@@ -764,11 +764,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'exclude_paths' => array(),
 			)
 		));
-		if (
-			!$full
-			&&
-			apply_filters('fw:ext:backups:add-backup-task:image-sizes-remove', true, $collection)
-		) {
+		if (!$full) {
 			$collection->add_task(new FW_Ext_Backups_Task(
 				$id_prefix .'image-sizes-remove',
 				'image-sizes-remove',

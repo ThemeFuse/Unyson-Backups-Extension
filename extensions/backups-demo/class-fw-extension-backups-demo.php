@@ -394,6 +394,9 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 				'type' => $demo->get_source_type(),
 				'type_args' => $demo->get_source_args(),
 				'destination_dir' => $tmp_dir,
+
+				// used only for https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/15
+				'demo_id' => $demo->get_id(),
 			)
 		));
 
