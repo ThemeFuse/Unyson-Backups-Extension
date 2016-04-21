@@ -844,8 +844,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		);
 		if (
 			!$full
-		    &&
-		    apply_filters('fw:ext:backups:add-restore-task:image-sizes-restore', true, $collection)
+			&&
+			apply_filters('fw:ext:backups:add-restore-task:image-sizes-restore', true, $collection)
 		) {
 			$collection->add_task(new FW_Ext_Backups_Task(
 				$id_prefix .'image-sizes-restore',
