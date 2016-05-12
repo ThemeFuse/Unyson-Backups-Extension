@@ -761,7 +761,9 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			array(
 				'source_dirs' => $dirs,
 				'destination' => $tmp_dir .'/f',
-				'exclude_paths' => array(),
+				'exclude_paths' => ( is_multisite() && ($wp_upload_dir = wp_upload_dir()) )
+					? array(fw_fix_path($wp_upload_dir['basedir']) .'/sites' => true)
+					: array(),
 			)
 		));
 		if (!$full) {
@@ -828,6 +830,9 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 				'source_dir' => $tmp_dir .'/f',
 				'destinations' => $dirs,
 				'filesystem_args' => $filesystem_args,
+				'skip_dirs' => ( is_multisite() && ($wp_upload_dir = wp_upload_dir()) )
+					? array(fw_fix_path($wp_upload_dir['basedir']) .'/sites' => true)
+					: array(),
 			))
 		);
 		$collection->add_task(new FW_Ext_Backups_Task(

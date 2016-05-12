@@ -26,6 +26,11 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 	 * * [filesystem_args] - {}|{hostname: '', username: '', password: '', connection_type: ''}
 	 */
 	public function execute(array $args, array $state = array()) {
+		$backups = fw_ext('backups'); /** @var FW_Extension_Backups $backups */
+
+		$upload_dir = wp_upload_dir();
+		$upload_dir = fw_fix_path($upload_dir['basedir']);
+
 		{
 			if (empty($args['source_dir'])) {
 				return new WP_Error(
@@ -48,10 +53,23 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 			} else {
 				$args['destinations'] = array_map('fw_fix_path', $args['destinations']);
 			}
-		}
 
-		$upload_dir = wp_upload_dir();
-		$upload_dir = fw_fix_path($upload_dir['basedir']);
+			{
+				if (empty($args['skip_dirs'])) {
+					$args['skip_dirs'] = array(
+						// '/path/to/dir' => true,
+						// '/path/to/file.txt' => true, // NOT WORKING. If you need this feature let us know
+					);
+				}
+
+				$args['skip_dirs'] = array_merge($args['skip_dirs'], array(
+					$backups->get_tmp_dir() => true,
+					$backups->get_backups_dir() => true,
+					$upload_dir .'/backup' => true, // Backup v1
+					fw_get_framework_directory() => true, // prevent framework delete, it must exist and continue task execution
+				));
+			}
+		}
 
 		if (empty($state)) {
 			// prepare destinations
@@ -137,20 +155,11 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
-		$backups = fw_ext('backups'); /** @var FW_Extension_Backups $backups */
-
-		$skip_dirs = array(
-			$backups->get_tmp_dir() => true,
-			$backups->get_backups_dir() => true,
-			$upload_dir .'/backup' => true, // Backup v1
-			fw_get_framework_directory() => true, // prevent framework delete, it must exist and continue task execution
-		);
-
 		while ($state['current_destination']['id']) {
 			if (is_wp_error($result = $this->clear_dir(
 				$state['current_destination']['data']['dir'],
 				$state['current_destination']['data']['fs'],
-				$skip_dirs
+				$args['skip_dirs']
 			))) {
 				return $result;
 			}
@@ -159,7 +168,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 				$args['source_dir'] .'/'. $state['current_destination']['id'],
 				$state['current_destination']['data']['dir'],
 				$state['current_destination']['data']['fs'],
-				$skip_dirs
+				$args['skip_dirs']
 			))) {
 				return $result;
 			}
