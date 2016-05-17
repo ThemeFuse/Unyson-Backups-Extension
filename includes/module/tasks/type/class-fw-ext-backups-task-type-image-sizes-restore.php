@@ -42,7 +42,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			"SELECT * FROM {$wpdb->posts}",
 			"WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d",
 			"ORDER BY ID",
-			"LIMIT 7"
+			"LIMIT 1"
 		), " \n" );
 
 
