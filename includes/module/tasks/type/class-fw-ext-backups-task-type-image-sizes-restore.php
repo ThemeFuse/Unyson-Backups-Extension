@@ -19,6 +19,11 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	/**
+	 * @var int Currently used/whitelisted/processed size
+	 */
+	private $current_size_index = -1;
+
+	/**
 	 * {@inheritdoc}
 	 * @param array $args
 	 */
@@ -30,6 +35,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			$state = array(
 				// The attachment at which the execution stopped and will continue in next request
 				'attachment_id' => 0,
+				'size_index' => 0,
 			);
 		}
 
@@ -55,16 +61,72 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 		}
 
 		foreach ( $attachments as $attachment ) {
-			if ( file_exists( $file = get_attached_file( $attachment['ID'] ) ) ) {
+			if ( ! file_exists( $file = get_attached_file( $attachment['ID'] ) ) ) {
+				continue;
+			}
+
+			// Generate one size
+			{
+				$this->current_size_index = $state['size_index'];
+
+				add_filter('intermediate_image_sizes_advanced', array($this, '_filter_image_sizes'), 99999);
+
 				wp_update_attachment_metadata(
-					$attachment['ID'],
-					wp_generate_attachment_metadata( $attachment['ID'], $file )
+					$attachment['ID'], wp_generate_attachment_metadata( $attachment['ID'], $file )
 				);
+
+				remove_filter('intermediate_image_sizes_advanced', array($this, '_filter_image_sizes'), 99999);
+
+				if ($this->current_size_index != $state['size_index']) {
+					$state['size_index'] = $this->current_size_index;
+				} else {
+					return new WP_Error(
+						'size_restore_fail',
+						sprintf(
+							__('Failed to process size %d of attachment %d', 'fw'),
+							$state['size_index'], $attachment['ID']
+						)
+					);
+				}
+			}
+
+			if ($state['size_index'] == -1) { // Sizes were processed one by one, now update meta with all sizes
+				if ( ! defined('wp_restore_image') ) {
+					require_once ABSPATH .'wp-admin/includes/image-edit.php';
+				}
+
+				wp_restore_image($attachment['ID']);
+
+				$state['size_index'] = 0;
+			} else {
+				return $state;
 			}
 		}
 
 		$state['attachment_id'] = $attachment['ID'];
 
 		return $state;
+	}
+
+	/**
+	 * Pick sizes one by one then all at the end
+	 * @param array $sizes
+	 * @return array
+	 */
+	public function _filter_image_sizes($sizes) {
+		if (count($sizes) > $this->current_size_index) { // current index not reached sizes end
+			$keys = array_keys( $sizes );
+			$size = $keys[ $this->current_size_index ];
+
+			++$this->current_size_index;
+
+			return array(
+				$size => $sizes[ $size ]
+			);
+		} else {
+			$this->current_size_index = -1;
+
+			return $sizes;
+		}
 	}
 }
