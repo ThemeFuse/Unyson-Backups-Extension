@@ -511,6 +511,30 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			@set_time_limit( abs($custom_timeout) );
 		}
 
+		/**
+		 * Log in as super admin to prevent current_user_can() limitations
+		 */
+		{
+			global $wpdb;
+
+			if (
+				($super_admin = $wpdb->get_results(
+					"SELECT user_id"
+					." FROM $wpdb->usermeta"
+					." WHERE `meta_key` = 'wp_user_level' AND `meta_value` = 10" // https://codex.wordpress.org/User_Levels#User_Levels_9_and_10
+					." LIMIT 1"
+				))
+				&&
+				($super_admin = get_user_by('id', $super_admin[0]->user_id ))
+				&&
+				isset($super_admin->caps['administrator'])
+				&&
+				$super_admin->caps['administrator']
+			) {
+				wp_set_current_user($super_admin->ID);
+			}
+		}
+
 		if ('POST' === $_SERVER['REQUEST_METHOD']) { ob_start(); } // prevent execution abort on output (see 'blocking')
 		try {
 			$task->set_result(
