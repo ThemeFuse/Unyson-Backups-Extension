@@ -32,6 +32,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 	private static $wp_ajax_action = 'fw:ext:backups:continue-pending-task';
 
+	private static $skip_shutdown_function = false;
+
 	public function _init() {
 		require_once dirname(__FILE__) .'/entity/class-fw-ext-backups-task.php';
 		require_once dirname(__FILE__) .'/entity/class-fw-ext-backups-task-collection.php';
@@ -535,6 +537,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			}
 		}
 
+		register_shutdown_function(array($this, '_shutdown_function'), array(
+			'collection' => $collection,
+			'task' => $task,
+		));
+
 		if ('POST' === $_SERVER['REQUEST_METHOD']) { ob_start(); } // prevent execution abort on output (see 'blocking')
 		try {
 			$task->set_result(
@@ -546,6 +553,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			);
 		}
 		if ('POST' === $_SERVER['REQUEST_METHOD']) { ob_end_clean(); }
+
+		self::$skip_shutdown_function = true;
 
 		$task->set_last_execution_end_time(microtime(true));
 
@@ -1036,5 +1045,33 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		}
 
 		@file_put_contents($path, implode(',', array_keys($hashes)));
+	}
+
+	/**
+	 * @internal
+	 * @param array $data
+	 */
+	public function _shutdown_function($data) {
+		if (
+			!self::$skip_shutdown_function
+			&&
+			($error = error_get_last())
+			&&
+			in_array(
+				$error['type'],
+				// http://php.net/manual/en/errorfunc.constants.php
+				array(E_ERROR, E_USER_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR),
+				true
+			)
+		) {
+			$data['task']->set_result(new WP_Error(
+				'execution_failed',
+				$error['message'] .' in '. $error['file'] .' on line '. $error['line']
+			));
+
+			$this->set_active_task_collection($data['collection']);
+
+			$this->do_task_fail_action($data['task']);
+		}
 	}
 }
