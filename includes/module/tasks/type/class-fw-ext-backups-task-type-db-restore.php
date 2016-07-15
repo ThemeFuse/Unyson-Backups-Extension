@@ -109,6 +109,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					return new WP_Error(
 						'drop_tmp_table_fail',
 						sprintf(__('Cannot drop temporary table: %s', 'fw'), $table_name)
+						.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 					);
 				}
 
@@ -394,6 +395,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								return new WP_Error(
 									'tmp_table_drop_fail',
 									sprintf( __( 'Failed to drop tmp table %s', 'fw' ), $tmp_table_name )
+									.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 								);
 							}
 
@@ -433,6 +435,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								return new WP_Error(
 									'tmp_table_create_fail',
 									sprintf( __( 'Failed to create tmp table %s', 'fw' ), $tmp_table_name )
+									.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 								);
 							}
 
@@ -604,6 +607,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 										return new WP_Error(
 											'insert_fail',
 											sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
+											.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 										);
 									}
 
@@ -626,6 +630,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 									return new WP_Error(
 										'insert_fail',
 										sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
+										.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 									);
 								}
 
@@ -721,6 +726,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								return new WP_Error(
 									'option_keep_fail',
 									sprintf(__('Failed to keep option: %s', 'fw'), $state['step'])
+									.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 								);
 							}
 						}
@@ -771,7 +777,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 					if (!$wpdb->query($drop_sql)) {
 						return new WP_Error(
-							'tables_drop_fail', __('Tables drop failed', 'fw')
+							'tables_drop_fail',
+							__('Tables drop failed', 'fw')
+							.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 						);
 					}
 				}
