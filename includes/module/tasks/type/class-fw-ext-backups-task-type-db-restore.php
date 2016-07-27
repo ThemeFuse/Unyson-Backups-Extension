@@ -91,6 +91,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		if (!class_exists('SplFileObject')) {
+			return new WP_Error(
+				'no_spl_file_object',
+				__('SplFileObject PHP class is required but not available. Please contact your hosting', 'fw')
+			);
+		}
+
 		global $wpdb; /** @var WPDB $wpdb */
 
 		if ($state['task'] === 'cleanup') {
@@ -112,6 +119,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						.($wpdb->last_error ? '. '. $wpdb->last_error : '')
 					);
 				}
+
+				++$state['step'];
 
 				return $state;
 			} else {
