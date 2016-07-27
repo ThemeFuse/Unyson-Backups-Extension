@@ -12,6 +12,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		return __( 'Database restore', 'fw' );
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
+	public function get_custom_timeout(array $args, array $state = array()) {
+		return 10; // Fixes https://github.com/ThemeFuse/Unyson/issues/1818
+	}
+
 	private $cache_table_index_columns = array();
 
 	private function get_index_column($table_name) {
@@ -151,7 +158,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			}
 
 			$started_time = time();
-			$timeout      = fw_ext( 'backups' )->get_timeout() - 7;
+			$timeout      = fw_ext( 'backups' )->get_timeout()
+			                -3; /* @see get_custom_timeout() */
 
 			while ( time() - $started_time < $timeout ) {
 				if ( $line = $fo->current() ) {
