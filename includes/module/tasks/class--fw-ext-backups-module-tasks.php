@@ -306,7 +306,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 						if ( $task->get_last_execution_start_time() + $timeout + 1 < time() ) {
 							$task->set_result( new WP_Error(
-								'timeout', __( 'The execution failed without an error message. Please check error.log', 'fw' )
+								'timeout', __( 'The execution failed. Please check error.log', 'fw' )
 							) );
 						}
 					}
