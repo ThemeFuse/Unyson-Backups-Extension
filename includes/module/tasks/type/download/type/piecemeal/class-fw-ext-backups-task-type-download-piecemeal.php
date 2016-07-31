@@ -203,7 +203,7 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 			);
 		}
 
-		if (substr($response['body'], 0, 3) === chr(0xEF).chr(0xBB).chr(0xBF)) {
+		if (substr($response['body'], 0, 3) === "\xEF\xBB\xBF") {
 			/**
 			 * Remove UTF-8 BOM added by the server
 			 * Fixes https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/25
