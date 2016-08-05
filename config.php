@@ -25,6 +25,9 @@ $cfg['db.backup.exclude_options'] = array(
 	'ftp_credentials' => true,
 	'use_ssl' => true,
 	'WPLANG' => true,
+	'recently_edited' => true, // contains full paths
+	'current_theme' => true,
+	// 'template' => true, 'stylesheet' => true, // used on restore to replace option names with current child theme
 );
 
 $cfg['db.restore.keep_options'] = array_merge(
@@ -38,7 +41,7 @@ $cfg['db.restore.keep_options'] = array_merge(
 		'timezone_string' => true,
 		'gmt_offset' => true,
 		'start_of_week' => true,
-		//'permalink_structure' => true, // imported links with different structure will be 404 if current structure will be kept
+		// 'permalink_structure' => true, // imported links with different structure will be 404 if current structure will be kept
 		'rewrite_rules' => true,
 		'ping_sites' => true,
 		'upload_path' => true,
@@ -59,6 +62,7 @@ $cfg['db.restore.keep_options'] = array_merge(
 		'default_role' => true,
 		'blog_public' => true,
 		'can_compress_scripts' => true,
+		'template' => true, 'stylesheet' => true, // keep current theme active
 	)
 );
 
