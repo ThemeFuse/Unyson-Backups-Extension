@@ -50,6 +50,7 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 					$backups->get_backups_dir() => true,
 					$backups->get_tmp_dir() => true, // by default it's in backups dir, just in case it will be changed
 					fw_fix_path($wp_upload_dir['basedir']) .'/backup' => true, // Backup v1
+					fw_fix_path($wp_upload_dir['basedir']) .'/fw' => true, // created in Unyson 2.5.13 by FW_File_Cache
 				));
 			}
 		}
