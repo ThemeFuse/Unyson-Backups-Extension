@@ -421,12 +421,18 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		/**
+		 * Prepare search and replace strings
+		 * Used for search and replace demo url with current url in each imported row
+		 * Are searched all possible formats: json encoded, json encoded escaped, WP Shortcodes encoded strings, etc.
+		 */
 		{
 			$params = array(
 				'search' => array(),
 				'replace' => array(),
 			);
 
+			// Prepare clean search->replace strings
 			{
 				/**
 				 * Note: rtrim(..., '/') is used to prevent wrong link replace
@@ -443,32 +449,67 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				if (isset($state['params']['wp_upload_dir_baseurl'])) {
 					$wp_upload_dir = wp_upload_dir();
 
-					$search_replace[ rtrim($state['params']['wp_upload_dir_baseurl'], '/') ]
-						= rtrim($wp_upload_dir['baseurl'], '/');
+					$search_replace[
+						rtrim($state['params']['wp_upload_dir_baseurl'], '/')
+					] = rtrim($wp_upload_dir['baseurl'], '/');
 
 					unset($wp_upload_dir);
 				}
 
-				$search_replace[ rtrim($state['params']['siteurl'], '/') ]
-					= rtrim(get_option('siteurl'), '/');
-				$search_replace[ rtrim($state['params']['home'], '/') ]
-					= rtrim(get_option('home'), '/');
+				$search_replace[
+					rtrim($state['params']['siteurl'], '/')
+				] = rtrim(get_option('siteurl'), '/');
+				$search_replace[
+					rtrim($state['params']['home'], '/')
+				] = rtrim(get_option('home'), '/');
 
 				foreach ($search_replace as $search => $replace) {
-					$search_replace[ fw_get_url_without_scheme($search) ]
-						= fw_get_url_without_scheme($replace);
+					$search_replace[
+						fw_get_url_without_scheme($search)
+					] = fw_get_url_without_scheme($replace);
 				}
 			}
 
+			// Add all possible combinations of encoding
 			foreach ($search_replace as $search => $replace) {
 				if ($search === $replace) {
 					continue;
 				}
 
-				foreach (array(
+				$_search_replace = array(
 					$search => $replace,
 					json_encode($search) => json_encode($replace),
-				) as $search => $replace) {
+				);
+
+				/**
+				 * Loop through all available shortcodes coders
+				 * Fixes https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/23
+				 */
+				if ($shortcodes_ext = fw_ext('shortcodes')) { /** @var FW_Extension_Shortcodes $shortcodes_ext */
+					$_search_replace_coders = array();
+
+					foreach ($shortcodes_ext->get_attr_coder() as $coder) {
+						foreach ($_search_replace as $search => $replace) {
+							if (
+								!is_wp_error($search  = $coder->encode(array('x' => $search),  'x', 0))
+								&&
+								isset($search['x']) // there is no other way to extract the encoded value
+								&&
+								!is_wp_error($replace = $coder->encode(array('x' => $replace), 'x', 0))
+								&&
+								isset($replace['x'])
+							) {
+								$_search_replace_coders[ $search['x'] ] = $replace['x'];
+							}
+						}
+					}
+
+					$_search_replace = array_merge($_search_replace, $_search_replace_coders);
+
+					unset($shortcodes_ext, $_search_replace_coders);
+				}
+
+				foreach ($_search_replace as $search => $replace) {
 					$params['search'][] = $search;
 					$params['replace'][] = $replace;
 
@@ -481,6 +522,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$params['search'][] = str_replace( '/', '\\\\\\/', $search);
 					$params['replace'][] = str_replace( '/', '\\\\\\/', $replace);
 				}
+
+				unset($_search_replace);
 			}
 
 			unset($search_replace, $search, $replace);
