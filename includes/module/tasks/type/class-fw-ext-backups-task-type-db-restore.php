@@ -513,6 +513,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 									)
 								) {
 									$_search_replace_coders[ $search ] = $replace;
+								} else {
+									break;
 								}
 							}
 						}
