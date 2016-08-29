@@ -490,16 +490,30 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 					foreach ($shortcodes_ext->get_attr_coder() as $coder) {
 						foreach ($_search_replace as $search => $replace) {
-							if (
-								!is_wp_error($search  = $coder->encode(array('x' => $search),  'x', 0))
-								&&
-								isset($search['x']) // there is no other way to extract the encoded value
-								&&
-								!is_wp_error($replace = $coder->encode(array('x' => $replace), 'x', 0))
-								&&
-								isset($replace['x'])
-							) {
-								$_search_replace_coders[ $search['x'] ] = $replace['x'];
+							/**
+							 * Shortcodes atts can contain other encoded shortcodes
+							 * so the values will be encoded multiple times
+							 */
+							for ($i = 0; $i < 3; $i++) {
+								if (
+									(
+										!is_wp_error($search  = $coder->encode(array('x' => $search),  'x', 0))
+										&&
+										isset($search['x']) // there is no other way to extract the encoded value
+										&&
+										($search = $search['x'])
+									)
+									&&
+									(
+										!is_wp_error($replace = $coder->encode(array('x' => $replace), 'x', 0))
+										&&
+										isset($replace['x'])
+										&&
+										($replace = $replace['x'])
+									)
+								) {
+									$_search_replace_coders[ $search ] = $replace;
+								}
 							}
 						}
 					}
