@@ -549,16 +549,17 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		 * Rename wp_option names which contain stylesheed in their names
 		 * Fixes https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/27
 		 */
-		if ( ! empty($state['params']['stylesheet']) ) {
-			$stylesheet = get_stylesheet();
+		if (
+			is_child_theme() // Fixes https://github.com/ThemeFuse/Unyson/issues/1952
+			&&
+			! empty($state['params']['stylesheet'])
+		) {
 			$replace_option_names = array_merge(
 				/** @since 2.0.12 */
 				apply_filters('fw_ext_backups_db_restore_option_names_replace', array(), array(
 					'stylesheet' => $state['params']['stylesheet'],
 				)),
-				array(
-					'theme_mods_'. $state['params']['stylesheet'] => 'theme_mods_'. $stylesheet
-				)
+				array( 'theme_mods_'. $state['params']['stylesheet'] => 'theme_mods_'. get_stylesheet() )
 			);
 		}
 
@@ -814,22 +815,33 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 								if ( false === $wpdb->query( $sql ) ) {
 									if (
-										!$update_count // is INSERT
+										! $update_count // is INSERT
 										&&
-										$wpdb->last_error && strpos($wpdb->last_error, 'Duplicate') !== false
-									) {
+										$wpdb->last_error
+										&&
 										/**
-										 * It's error "Duplicate entry ...", it happens some times (I don't know why)
+										 * This happens when the column type is binary.
+										 * The binary value on Content Backup is exported to string in json, and now back to binary
+										 * so it looses some data, especially if it contains trailing `0x...000`
 										 * Fixes https://github.com/ThemeFuse/Unyson/issues/1952
 										 */
+										(
+											strpos($wpdb->last_error, 'Duplicate') !== false
+											&&
+											strpos($wpdb->last_error, '\\x00') !== false
+										)
+									) {
 										break;
 									} else {
 										$fo = null;
 
 										return new WP_Error(
 											'insert_fail',
-											sprintf(__('Failed to insert row from line %d', 'fw'), $state['step'] + 1)
-											. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
+											sprintf(
+												__('Failed to insert row from line %d into table %s', 'fw'),
+												$state['step'] + 1, $tmp_table_name
+											)
+											. ($wpdb->last_error ? '. ' . $wpdb->last_error : '') . ' | ' . json_encode($row)
 										);
 									}
 								}
@@ -848,20 +860,16 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							));
 
 							if ( false === $wpdb->query( $sql ) ) {
-								if ($wpdb->last_error && strpos($wpdb->last_error, 'Duplicate') !== false) {
-									/**
-									 * It's error "Duplicate entry ...", it happens some times (I don't know why)
-									 * Fixes https://github.com/ThemeFuse/Unyson/issues/1952
-									 */
-								} else {
-									$fo = null;
+								$fo = null;
 
-									return new WP_Error(
-										'insert_fail',
-										sprintf(__('Failed to insert row from line %d', 'fw'), $state['step'] + 1)
-										. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
-									);
-								}
+								return new WP_Error(
+									'insert_fail',
+									sprintf(
+										__('Failed to insert row from line %d into table %s', 'fw'),
+										$state['step'] + 1, $tmp_table_name
+									)
+									. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
+								);
 							}
 
 							unset( $sql );
