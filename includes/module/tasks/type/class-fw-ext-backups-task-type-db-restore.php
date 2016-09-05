@@ -813,13 +813,25 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								}
 
 								if ( false === $wpdb->query( $sql ) ) {
-									$fo = null;
+									if (
+										!$update_count // is INSERT
+										&&
+										$wpdb->last_error && strpos($wpdb->last_error, 'Duplicate') !== false
+									) {
+										/**
+										 * It's error "Duplicate entry ...", it happens some times (I don't know why)
+										 * Fixes https://github.com/ThemeFuse/Unyson/issues/1952
+										 */
+										break;
+									} else {
+										$fo = null;
 
-									return new WP_Error(
-										'insert_fail',
-										sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
-										.($wpdb->last_error ? '. '. $wpdb->last_error : '')
-									);
+										return new WP_Error(
+											'insert_fail',
+											sprintf(__('Failed to insert row from line %d', 'fw'), $state['step'] + 1)
+											. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
+										);
+									}
 								}
 
 								unset( $sql );
@@ -836,13 +848,20 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							));
 
 							if ( false === $wpdb->query( $sql ) ) {
-								$fo = null;
+								if ($wpdb->last_error && strpos($wpdb->last_error, 'Duplicate') !== false) {
+									/**
+									 * It's error "Duplicate entry ...", it happens some times (I don't know why)
+									 * Fixes https://github.com/ThemeFuse/Unyson/issues/1952
+									 */
+								} else {
+									$fo = null;
 
-								return new WP_Error(
-									'insert_fail',
-									sprintf( __( 'Failed insert row from line %d', 'fw' ), $state['step'] + 1 )
-									.($wpdb->last_error ? '. '. $wpdb->last_error : '')
-								);
+									return new WP_Error(
+										'insert_fail',
+										sprintf(__('Failed to insert row from line %d', 'fw'), $state['step'] + 1)
+										. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
+									);
+								}
 							}
 
 							unset( $sql );
