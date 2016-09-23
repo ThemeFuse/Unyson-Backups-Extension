@@ -24,15 +24,6 @@ $active_collection = $backups->tasks()->get_active_task_collection();
 				$executing_task->get_result()
 			));
 		?></em>
-		<?php if ($executing_task->get_last_execution_start_time() + $backups->get_task_step_execution_threshold() < time()): ?>
-			<br/>
-			<em class="fw-text-danger"><?php
-				echo esc_html(sprintf(
-					__('An executing step is running %d+ seconds', 'fw'),
-					$backups->get_task_step_execution_threshold()
-				));
-			?></em>
-		<?php endif; ?>
 	<?php elseif ($pending_task): ?>
 		<em><?php
 			echo esc_html($backups->tasks()->get_task_type_title(
