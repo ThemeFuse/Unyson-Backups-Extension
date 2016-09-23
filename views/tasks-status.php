@@ -35,7 +35,7 @@ $backups = fw_ext('backups');
 
 <?php if ($active_task_collection && $active_task_collection->is_cancelable()): ?>
 	<a href="#" onclick="fwEvents.trigger('fw:ext:backups:cancel'); return false;"><em><?php
-		esc_html_e('Cancel', 'fw');
+		esc_html_e('Abort', 'fw');
 	?></em></a>
 <?php endif; ?>
 

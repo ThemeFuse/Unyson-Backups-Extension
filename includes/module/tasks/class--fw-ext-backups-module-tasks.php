@@ -933,24 +933,20 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 	}
 
 	public function do_cancel() {
-		if ($this->get_executing_task()) {
-			return false;
-		}
-
-		if (
+		if (!(
 			($collection = $this->get_active_task_collection())
 			&&
-		    $collection->is_cancelable()
-		) {
-			// ok
-		} else {
+			$collection->is_cancelable()
+		)) {
 			return false;
+		} else {
+			$this->set_active_task_collection(null);
+			file_put_contents($this->get_executed_tasks_path(), '');
+
+			do_action('fw:ext:backups:tasks:cancel:id:'. $collection->get_id());
+
+			return true;
 		}
-
-		$this->set_active_task_collection(null);
-		file_put_contents($this->get_executed_tasks_path(), '');
-
-		return true;
 	}
 
 	/**

@@ -108,12 +108,19 @@ final class FW_Ext_Backups_Task_Collection {
 	 * @return bool
 	 */
 	public function is_cancelable() {
+		/** @var FW_Extension_Backups $ext */
+		$ext = fw_ext('backups');
+
 		return (
 			($tasks = $this->get_tasks())
 			&&
 			($first_task = reset($tasks))
 			&&
-			!$first_task->get_last_execution_start_time()
+			(
+				!$first_task->get_last_execution_start_time()
+				||
+				($first_task->get_last_execution_start_time() + $ext->get_task_step_execution_threshold()) < time()
+			)
 		);
 	}
 

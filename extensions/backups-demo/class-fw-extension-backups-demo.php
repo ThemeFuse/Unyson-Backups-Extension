@@ -56,6 +56,10 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			'fw:ext:backups:tasks:success:id:'. self::$task_collection_id,
 			array($this, '_action_tasks_success')
 		);
+		add_action(
+			'fw:ext:backups:tasks:cancel:id:'. self::$task_collection_id,
+			array($this, '_action_tasks_cancel')
+		);
 
 		add_action(
 			'wp_ajax_'. self::$wp_ajax_status,
@@ -230,6 +234,9 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 						'install' => self::$wp_ajax_install,
 						'status' => self::$wp_ajax_status,
 						'cancel' => self::$wp_ajax_cancel,
+					),
+					'l10n' => array(
+						'abort_confirm' => __('Are you sure?', 'fw'),
 					),
 				)
 			);
@@ -444,6 +451,12 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		}
 
 		$this->set_active_demo(array('result' => $error));
+	}
+
+	public function _action_tasks_cancel() {
+		$this->set_active_demo(array(
+			'result' => __('Demo Install has been aborted', 'fw')
+		));
 	}
 
 	public function _action_tasks_success(FW_Ext_Backups_Task_Collection $collection) {

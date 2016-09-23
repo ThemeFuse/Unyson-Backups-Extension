@@ -232,6 +232,10 @@ jQuery(function($){
 			if (this.isBusy) {
 				return;
 			} else {
+				if (!confirm(this.localized.l10n.abort_confirm)) {
+					return;
+				}
+
 				this.isBusy = true;
 			}
 

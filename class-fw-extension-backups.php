@@ -61,6 +61,15 @@ class FW_Extension_Backups extends FW_Extension {
 		return $timeout;
 	}
 
+	/**
+	 * If a task step execution takes more that this amount of second, then perhaps it is something wrong.
+	 * @return int
+	 * @since 2.0.14
+	 */
+	public function get_task_step_execution_threshold() {
+		return 30; // http://php.net/manual/en/info.configuration.php#ini.max-execution-time
+	}
+
 	public function get_page_slug() {
 		return 'fw-backups';
 	}
@@ -217,6 +226,9 @@ class FW_Extension_Backups extends FW_Extension {
 						'ajax_action_restore' => self::$wp_ajax_action_restore,
 						'ajax_action_delete'  => self::$wp_ajax_action_delete,
 						'ajax_action_cancel'  => self::$wp_ajax_action_cancel,
+						'l10n' => array(
+							'abort_confirm' => __('Are you sure?', 'fw'),
+						),
 					)
 				)
 			);
