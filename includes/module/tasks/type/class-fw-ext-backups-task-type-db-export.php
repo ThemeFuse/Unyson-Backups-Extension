@@ -138,7 +138,9 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 				if (empty($sql)) {
 					fclose($fp);
 					return new WP_Error(
-						'create_table_sql', __('Cannot export CREATE TABLE sql', 'fw')
+						'create_table_sql',
+						sprintf(__('Cannot export CREATE TABLE sql for %s', 'fw'), $state['table'])
+						.( $wpdb->last_error ? '. '. $wpdb->last_error : '' )
 					);
 				} else {
 					$sql = $sql[0];
@@ -296,8 +298,14 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 				)
 			);
 
+			/**
+			 * Use /i in regex because prefix can be mixed case.
+			 * Fixes https://github.com/ThemeFuse/Unyson/issues/2068#issuecomment-250196792
+			 */
+			$prefix_regex = '/^'. preg_quote($wpdb->prefix, '/') .'/i';
+
 			foreach ($tables as $i => $table) {
-				$tables[$i] = preg_replace('/^'. preg_quote($wpdb->prefix, '/') .'/', '', $table);
+				$tables[$i] = preg_replace($prefix_regex, '', $table);
 
 				if (is_numeric($tables[$i]{0})) {
 					/**

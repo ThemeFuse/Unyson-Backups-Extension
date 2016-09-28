@@ -104,7 +104,7 @@ final class FW_Ext_Backups_Task_Collection {
 	}
 
 	/**
-	 * If none of the task has executed and the entire collection can be cancelled
+	 * If the collection is in a state that can be Cancelled/Aborted
 	 * @return bool
 	 */
 	public function is_cancelable() {
