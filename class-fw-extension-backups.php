@@ -597,15 +597,17 @@ class FW_Extension_Backups extends FW_Extension {
 			 * Read and output parts
 			 */
 			while (!feof($f)) {
-				fclose($f);
-				unset($f);
-				if (!($f = fopen($archive['path'], 'r'))) {
-					trigger_error('Failed to open the file '. $archive['path'], E_USER_ERROR);
-					die(1);
-				}
+				{ // https://github.com/ThemeFuse/Unyson/issues/2070#issuecomment-250261290
+					fclose($f);
+					unset($f);
+					if (!($f = fopen($archive['path'], 'r'))) {
+						trigger_error('Failed to open the file '. $archive['path'], E_USER_ERROR);
+						die(1);
+					}
 
-				fseek($f, $byte_pos); // restore previous position
-				$byte_pos += $bytes_per_cycle;
+					fseek($f, $byte_pos); // restore previous position
+					$byte_pos += $bytes_per_cycle;
+				}
 
 				if (false !== ($bytes = fread($f, $bytes_per_cycle))) {
 					echo $bytes;
