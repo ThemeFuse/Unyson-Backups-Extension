@@ -610,6 +610,7 @@ class FW_Extension_Backups extends FW_Extension {
 				if (false !== ($bytes = fread($f, $bytes_per_cycle))) {
 					echo $bytes;
 					unset($bytes); // free memory
+					flush();
 				} else {
 					break;
 				}
