@@ -581,9 +581,7 @@ class FW_Extension_Backups extends FW_Extension {
 				break;
 			}
 
-			if ($f = fopen($archive['path'], 'r')) {
-				// ok
-			} else {
+			if (!($f = fopen($archive['path'], 'r'))) {
 				$error = __('Failed to open file', 'fw');
 				break;
 			}
@@ -591,12 +589,30 @@ class FW_Extension_Backups extends FW_Extension {
 			header('Content-Disposition: attachment; filename="'. esc_attr($archive_filename) .'"');
 			header('Content-Type: application/zip, application/octet-stream');
 
+			$byte_pos = 0;
+			$bytes_per_cycle = 1000000;
+
 			/**
 			 * Some files can be huge, do not load entire file in php memory then output, it can cause memory limit error
 			 * Read and output parts
 			 */
 			while (!feof($f)) {
-				echo fread($f, 1000000);
+				fclose($f);
+				unset($f);
+				if (!($f = fopen($archive['path'], 'r'))) {
+					trigger_error('Failed to open the file '. $archive['path'], E_USER_ERROR);
+					die(1);
+				}
+
+				fseek($f, $byte_pos); // restore previous position
+				$byte_pos += $bytes_per_cycle;
+
+				if (false !== ($bytes = fread($f, $bytes_per_cycle))) {
+					echo $bytes;
+					unset($bytes); // free memory
+				} else {
+					break;
+				}
 			}
 
 			fclose($f);
