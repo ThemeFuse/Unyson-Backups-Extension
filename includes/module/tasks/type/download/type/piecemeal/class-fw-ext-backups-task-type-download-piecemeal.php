@@ -97,6 +97,12 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 		$file_path = $args['destination_dir'] .'/'. $this->get_type() .'.zip';
 
 		if ($state['position'] < 0) {
+			if (!class_exists('ZipArchive')) {
+				return new WP_Error(
+					'zip_ext_missing', __('Zip extension missing', 'fw')
+				);
+			}
+
 			$zip = new ZipArchive();
 
 			if (true !== ($code = $zip->open($file_path))) {

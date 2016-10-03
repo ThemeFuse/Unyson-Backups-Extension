@@ -424,7 +424,12 @@ class FW_Extension_Backups extends FW_Extension {
 	public function get_archives($full = null) {
 		$archives = array();
 
-		if ($paths = glob($this->get_backups_dir() .'/*.zip')) {
+		if (!class_exists('ZipArchive')) {
+			trigger_error(
+				__('Class ZipArchive not found. Please install php zip extension', 'fw'),
+				E_USER_WARNING
+			);
+		} elseif ($paths = glob($this->get_backups_dir() .'/*.zip')) {
 			foreach ( $paths as $path ) {
 				{
 					$zip = new ZipArchive();
