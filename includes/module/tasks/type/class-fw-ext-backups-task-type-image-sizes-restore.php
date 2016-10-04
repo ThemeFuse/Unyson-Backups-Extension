@@ -10,7 +10,14 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	public function get_custom_timeout(array $args, array $state = array()) {
-		return fw_ext( 'backups' )->get_config('max_timeout');
+		/** @var FW_Extension_Backups $backups */
+		$backups = fw_ext( 'backups' );
+
+		/**
+		 * Use a small value because problems with this step are quite often
+		 * and it is frustrating to wait 10+ minutes just to see the Timed Out error (better to see it earlier)
+		 */
+		return $backups->get_task_step_execution_threshold() + 7;
 	}
 
 	/**
@@ -31,8 +38,10 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 
 		/** @var WPDB $wpdb */
 		global $wpdb;
+		/** @var FW_Extension_Backups $backups */
+		$backups = fw_ext( 'backups' );
 
-		$max_time = time() + fw_ext( 'backups' )->get_timeout() - 7;
+		$max_time = time() + $backups->get_timeout() - 7;
 
 		while (time() < $max_time) {
 			if ( $attachment_id = $wpdb->get_col(
