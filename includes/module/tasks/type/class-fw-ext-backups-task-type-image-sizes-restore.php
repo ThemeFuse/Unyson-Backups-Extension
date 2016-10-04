@@ -10,12 +10,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	public function get_custom_timeout(array $args, array $state = array()) {
-		/**
-		 * There is no need for more
-		 * because only on image size is generated per request,
-		 * if 10+ seconds is not enough, then for sure there is a problem
-		 */
-		return 27;
+		return fw_ext( 'backups' )->get_config('max_timeout');
 	}
 
 	/**
@@ -23,9 +18,6 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	 * @param array $args
 	 */
 	public function execute(array $args, array $state = array()) {
-		$backups = fw_ext( 'backups' );
-		/** @var FW_Extension_Backups $backups */
-
 		if ( empty( $state ) ) {
 			$state = array(
 				// The attachment at which the execution stopped and will continue in next request
@@ -37,50 +29,57 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			);
 		}
 
-		/**
-		 * @var WPDB $wpdb
-		 */
+		/** @var WPDB $wpdb */
 		global $wpdb;
 
-		$sql = implode( array(
-			"SELECT * FROM {$wpdb->posts}",
-			"WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d",
-			"ORDER BY ID",
-			"LIMIT 1"
-		), " \n" );
+		$max_time = time() + fw_ext( 'backups' )->get_timeout() - 7;
 
-		$attachments = $wpdb->get_results( $wpdb->prepare(
-			$sql, $wpdb->esc_like( 'image/' ) . '%', $state['attachment_id']
-		), ARRAY_A );
-
-		if ( empty( $attachments ) ) {
-			return true;
-		}
-
-		if (empty($state['pending_sizes'])) {
-			$state['pending_sizes'] = get_intermediate_image_sizes();
-		}
-
-		foreach ( $attachments as $attachment ) {
-			if ( file_exists( $file = get_attached_file( $attachment['ID'] ) ) ) {
-				$this->current_size = array_shift($state['pending_sizes']);
-				add_filter('intermediate_image_sizes', array($this, '_filter_image_sizes'));
-
-				$meta = wp_generate_attachment_metadata( $attachment['ID'], $file );
-
-				$this->current_size = '';
-				remove_filter('intermediate_image_sizes', array($this, '_filter_image_sizes'));
-
-				$state['processed_sizes'] = array_merge($state['processed_sizes'], $meta['sizes']);
-				$meta['sizes'] = $state['processed_sizes'];
-
-				wp_update_attachment_metadata( $attachment['ID'], $meta );
+		while (time() < $max_time) {
+			if ( $attachment_id = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts}"
+					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d"
+					." ORDER BY ID"
+					." LIMIT 1",
+					$wpdb->esc_like( 'image/' ) . '%', $state['attachment_id']
+				),
+				0
+			) ) {
+				$attachment_id = array_pop($attachment_id);
+			} else {
+				return true;
 			}
-		}
 
-		if (empty($state['pending_sizes'])) { // proceed to next attachment if all sizes has been generated
-			$state['attachment_id'] = $attachment['ID'];
-			$state['processed_sizes'] = array();
+			if ( $file_exists = file_exists( $file = get_attached_file( $attachment_id ) ) ) {
+				if (empty($state['pending_sizes'])) {
+					$state['pending_sizes'] = get_intermediate_image_sizes();
+					$state['processed_sizes'] = array();
+				}
+
+				while (time() < $max_time && !empty($state['pending_sizes'])) {
+					{
+						$this->current_size = array_shift($state['pending_sizes']);
+						add_filter('intermediate_image_sizes', array($this, '_filter_image_sizes'));
+
+						$meta = wp_generate_attachment_metadata($attachment_id, $file);
+
+						$this->current_size = '';
+						remove_filter('intermediate_image_sizes', array($this, '_filter_image_sizes'));
+					}
+
+					$state['processed_sizes'] = array_merge($state['processed_sizes'], $meta['sizes']);
+				}
+
+				if (isset($meta)) {
+					$meta['sizes'] = $state['processed_sizes'];
+					wp_update_attachment_metadata($attachment_id, $meta);
+				}
+			}
+
+			if (empty($state['pending_sizes']) || !$file_exists) { // Proceed to next attachment
+				$state['attachment_id'] = $attachment_id;
+				$state['processed_sizes'] = $state['pending_sizes'] = array();
+			}
 		}
 
 		return $state;
