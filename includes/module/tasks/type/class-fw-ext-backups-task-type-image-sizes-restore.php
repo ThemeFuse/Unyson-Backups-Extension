@@ -73,6 +73,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 				if (isset($meta)) {
 					$meta['sizes'] = $state['processed_sizes'];
 					wp_update_attachment_metadata($attachment_id, $meta);
+					unset($meta);
 				}
 			}
 
