@@ -211,8 +211,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				 * Delete only one table at once, because some tables can be huge
 				 * and deleting them all at once can exceed timeout limit
 				 */
-					$table_name = array_pop($table_names)
-				))) {
+				$table_name = array_pop($table_names)
+			))) {
 				return new WP_Error(
 					'drop_tmp_table_fail',
 					sprintf(__('Cannot drop temporary table: %s', 'fw'), $table_name)
@@ -589,6 +589,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						}
 
 						$tmp_table_name = $this->get_tmp_table_prefix() . $line['data']['name'];
+
+						if (strlen($tmp_table_name) > 64) { // http://stackoverflow.com/a/6868316/1794248
+							return new WP_Error(
+								'tmp_table_name_invalid',
+								sprintf( __( 'Invalid table name: %s', 'fw' ), $tmp_table_name )
+							);
+						}
 
 						if ( false === $wpdb->query( 'DROP TABLE IF EXISTS ' . esc_sql( $tmp_table_name ) ) ) {
 							$fo = null;
