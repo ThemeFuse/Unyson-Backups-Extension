@@ -593,7 +593,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						if (strlen($tmp_table_name) > 64) { // http://stackoverflow.com/a/6868316/1794248
 							return new WP_Error(
 								'tmp_table_name_invalid',
-								sprintf( __( 'Invalid table name: %s', 'fw' ), $tmp_table_name )
+								sprintf( __( 'Table name is more than 64 characters: %s', 'fw' ), $tmp_table_name )
 							);
 						}
 
