@@ -9,3 +9,18 @@
 #fw-ext-backups-demo-list .fw-ext-backups-demo-item.active .theme-actions {
 	display: none;
 }
+
+
+/* status modal */
+
+.fw-ext-backups-demo-status-modal .progress-percent {
+	background: #ddd;
+	margin: 0 15px;
+}
+
+.fw-ext-backups-demo-status-modal .progress-percent > div {
+	background: #3c763d;
+	height: 3px;
+}
+
+/* end: status modal */
