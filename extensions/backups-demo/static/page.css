@@ -15,11 +15,11 @@
 
 .fw-ext-backups-demo-status-modal .progress-percent {
 	background: #ddd;
-	margin: 0 15px;
+	margin: 0 30px;
 }
 
 .fw-ext-backups-demo-status-modal .progress-percent > div {
-	background: #3c763d;
+	background: #0085ba;
 	height: 3px;
 }
 

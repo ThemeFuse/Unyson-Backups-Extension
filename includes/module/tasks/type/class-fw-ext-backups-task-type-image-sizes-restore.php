@@ -6,7 +6,11 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	public function get_title(array $args = array(), array $state = array()) {
-		return __('Image Sizes Restore', 'fw');
+		return __('Image Sizes Restore', 'fw') .(
+			empty($state)
+				? ''
+				: ' '. sprintf(__('(%d of %d)', 'fw'), $state['processed_images'], $state['total_images'])
+		);
 	}
 
 	public function get_custom_timeout(array $args, array $state = array()) {
@@ -25,6 +29,9 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	 * @param array $args
 	 */
 	public function execute(array $args, array $state = array()) {
+		/** @var WPDB $wpdb */
+		global $wpdb;
+
 		if ( empty( $state ) ) {
 			$state = array(
 				// The attachment at which the execution stopped and will continue in next request
@@ -33,11 +40,27 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 				'pending_sizes' => array(),
 				// Collect the processed sizes and use this value as attachment meta to prevent regenerating all sizes
 				'processed_sizes' => array(),
+				// Count the processed images
+				'processed_images' => 0,
 			);
-		}
 
-		/** @var WPDB $wpdb */
-		global $wpdb;
+			if ($state['total_images'] = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT COUNT(1) as total_images FROM {$wpdb->posts}"
+					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s"
+					." LIMIT 1",
+					$wpdb->esc_like( 'image/' ) . '%'
+				),
+				0
+			)) {
+				$state['total_images'] = array_pop($state['total_images']);
+			} else {
+				return new WP_Error(
+					'total_images_fail',
+					__('Cannot get total images count', 'fw')
+				);
+			}
+		}
 		/** @var FW_Extension_Backups $backups */
 		$backups = fw_ext( 'backups' );
 
@@ -89,6 +112,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			if (empty($state['pending_sizes']) || !$file_exists) { // Proceed to next attachment
 				$state['attachment_id'] = $attachment_id;
 				$state['processed_sizes'] = $state['pending_sizes'] = array();
+				++$state['processed_images'];
 			}
 		}
 
