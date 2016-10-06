@@ -1067,6 +1067,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					);
 				}
 			}
+
+			/**
+			 * Sometimes the wp_options table has Overhead (look in phpMyAdmin) then the db/site works slow
+			 */
+			$wpdb->query("OPTIMIZE TABLE `{$wpdb->prefix}options`");
 		}
 
 		wp_cache_flush();
