@@ -30,21 +30,17 @@ $active_collection = $backups->tasks()->get_active_task_collection();
 		<div class="progress-percent"><div style="width: <?php echo $percentage; ?>%;"></div></div>
 
 		<?php if ($executing_task): ?>
-			<p class="fw-text-muted"><em><?php
-					echo esc_html($backups->tasks()->get_task_type_title(
-						$executing_task->get_type(),
-						$executing_task->get_args(),
-						$executing_task->get_result()
-					));
-					?></em></p>
+			<p class="fw-text-muted"><em><?php echo esc_html($backups->tasks()->get_task_type_title(
+				$executing_task->get_type(),
+				$executing_task->get_args(),
+				$executing_task->get_result()
+			)); ?></em></p>
 		<?php elseif ($pending_task): ?>
-			<p class="fw-text-muted"><em><?php
-					echo esc_html($backups->tasks()->get_task_type_title(
-						$pending_task->get_type(),
-						$pending_task->get_args(),
-						$pending_task->get_result()
-					));
-					?></em></p>
+			<p class="fw-text-muted"><em><?php echo esc_html($backups->tasks()->get_task_type_title(
+				$pending_task->get_type(),
+				$pending_task->get_args(),
+				$pending_task->get_result()
+			)); ?></em></p>
 		<?php endif; ?>
 	<?php elseif ($install_is_pending): ?>
 		<p><img src="<?php echo get_site_url() ?>/wp-admin/images/spinner.gif" alt="Loading"></p>

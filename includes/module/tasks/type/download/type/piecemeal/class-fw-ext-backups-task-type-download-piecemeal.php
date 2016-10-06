@@ -10,18 +10,18 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 	public function get_title(array $args = array(), array $state = array()) {
 		if (empty($state)) {
-			return __( 'Downloading...', 'fw' );
+			return __( 'Downloading', 'fw' );
 		} else {
 			if ($state['position'] < 0) {
-				return __( 'Download finished. Doing unzip...', 'fw' );
+				return __( 'Download finished. Doing unzip', 'fw' );
 			} elseif (!empty($state['filesize']) && $state['position']) {
 				return sprintf(
-					__( 'Downloading... %s of %s', 'fw' ),
+					__( 'Downloading (%s of %s)', 'fw' ),
 					size_format($state['position']), size_format($state['filesize'])
 				);
 			} else {
 				return sprintf(
-					__( 'Downloading... %s', 'fw' ),
+					__( 'Downloading %s of unknown', 'fw' ),
 					size_format($state['position'])
 				);
 			}
