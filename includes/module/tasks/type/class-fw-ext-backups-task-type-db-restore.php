@@ -160,8 +160,24 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			)
 		);
 
+		/**
+		 * Use /i in regex because prefix can be mixed case.
+		 * Fixes https://github.com/ThemeFuse/Unyson/issues/2068#issuecomment-250196792
+		 */
+		$prefix_regex = '/^'. preg_quote($wpdb->prefix, '/') .'/i';
+
 		foreach ($tables as $i => $table) {
-			$tables[$i] = preg_replace('/^'. preg_quote($wpdb->prefix, '/') .'/', '', $table);
+			$tables[$i] = preg_replace($prefix_regex, '', $table);
+
+			if (is_numeric($tables[$i]{0})) {
+				/**
+				 * Skip multisite tables '1_options' (wp_1_options)
+				 * This happens when restore is done on main site.
+				 * So when doing restore on main site,
+				 * only main site tables will be restored, without sub sites tables.
+				 */
+				unset($tables[$i]);
+			}
 		}
 
 		return array_fill_keys( $tables, array() );
