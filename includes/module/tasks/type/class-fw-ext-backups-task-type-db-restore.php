@@ -1035,6 +1035,10 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$drop_sql[] = esc_sql( $wpdb->prefix . $name );
 				}
 
+				/**
+				 * Demo Install can contain new tables like for plugins
+				 * so don't use `isset($current_tables[$name])` to import only existing table names
+				 */
 				$rename_sql[] =
 					esc_sql($this->get_tmp_table_prefix() . $name)
 					. ' TO '
@@ -1067,11 +1071,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					);
 				}
 			}
-
-			/**
-			 * Sometimes the wp_options table has Overhead (look in phpMyAdmin) then the db/site works slow
-			 */
-			$wpdb->query("OPTIMIZE TABLE `{$wpdb->prefix}options`");
 		}
 
 		wp_cache_flush();
