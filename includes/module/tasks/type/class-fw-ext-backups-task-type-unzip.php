@@ -21,13 +21,6 @@ class FW_Ext_Backups_Task_Type_Unzip extends FW_Ext_Backups_Task_Type {
 	 * @param array $args
 	 * * zip - file path
 	 * * dir - where the zip file will be extract
-	 *
-	 * Warning!
-	 *  Zip can't be executed in steps, it will execute way too long,
-	 *  because it is impossible to update a zip file, every time you add a file to zip,
-	 *  a new temp copy of original zip is created with new modifications, it is compressed,
-	 *  and the original zip is replaced. So when the zip will grow in size,
-	 *  just adding a single file, will take a very long time.
 	 */
 	public function execute(array $args, array $state = array()) {
 		{
