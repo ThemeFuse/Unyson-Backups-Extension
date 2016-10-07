@@ -864,7 +864,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 												__('Failed to insert row from line %d into table %s', 'fw'),
 												$state['step'] + 1, $tmp_table_name
 											)
-											. ($wpdb->last_error ? '. ' . $wpdb->last_error : '') . ' | ' . json_encode($row)
+											. ($wpdb->last_error ? '. ' . $wpdb->last_error : '')
 										);
 									}
 								}
