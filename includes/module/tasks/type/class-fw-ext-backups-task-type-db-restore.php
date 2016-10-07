@@ -569,6 +569,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			is_child_theme() // Fixes https://github.com/ThemeFuse/Unyson/issues/1952
 			&&
 			! empty($state['params']['stylesheet'])
+			&&
+			$state['params']['stylesheet'] !== get_template()
 		) {
 			$replace_option_names = array_merge(
 				/** @since 2.0.12 */
