@@ -180,3 +180,122 @@ function fw_ext_backups_current_user_can_full() {
 		       current_user_can( 'install_themes' );
 	}
 }
+
+/**
+ * Extract from zip files one by one and check if timeout wasn't reached
+ * @param string|resource $zip Path or zip_open() result
+ * @param string $destination_dir
+ * @param int $timeout
+ * @param string $last_entry
+ * @return array|WP_Error Done when $result['finished'] === true
+ * @since 2.0.16
+ */
+function fw_ext_backups_unzip_partial($zip, $destination_dir, $last_entry = '', $timeout = 0) {
+	if (!function_exists('zip_open')) {
+		return new WP_Error(
+			'zip_ext_missing', __('Zip extension missing', 'fw')
+		);
+	}
+
+	if (!is_resource($zip) && !is_resource($zip = zip_open($zip))) {
+		return new WP_Error(
+			'cannot_open_zip', sprintf(__('Cannot open zip (Error code: %s)', 'fw'), $zip)
+		);
+	}
+
+	if ($timeout <= 0) {
+		/** @var FW_Extension_Backups $ext */
+		$ext = fw_ext('backups');
+		$timeout = $ext->get_timeout() - 10;
+	}
+
+	if ($last_entry) {
+		while(
+			($entry = zip_read($zip))
+			&&
+			zip_entry_name($entry) !== $last_entry
+		);
+
+		if (!$entry) {
+			zip_close($zip);
+			return new WP_Error(
+				'entry_restore_fail',
+				sprintf(__('Cannot restore previous zip entry: %s', 'fw'), $last_entry)
+			);
+		}
+	}
+
+	$result = array(
+		'finished' => false,
+		'last_entry' => $last_entry,
+		'extracted_files' => 0,
+	);
+
+	$max_time = time() + $timeout;
+
+	while (time() < $max_time) {
+		if (!($entry = zip_read($zip))) {
+			$result['finished'] = true;
+			return $result;
+		}
+
+		$name = zip_entry_name($entry);
+
+		if (substr($name, -1) === '/') {
+			continue; // it is a directory
+		}
+
+		$destination_path = $destination_dir .'/'. $name;
+
+		if (
+			!file_exists($dest_dir = dirname($destination_path))
+			&&
+			!mkdir($dest_dir, 0777, true)
+		) {
+			zip_close($zip);
+			return new WP_Error(
+				'mkdir_fail',
+				sprintf(__('Cannot create directory: %s', 'fw'), $dest_dir)
+			);
+		}
+
+		if (false === ($unzipped = fopen($destination_path, 'wb'))) {
+			zip_close($zip);
+			return new WP_Error(
+				'fopen_fail',
+				sprintf(__('Cannot create file: %s', 'fw'), $destination_path)
+			);
+		}
+
+		$size = zip_entry_filesize($entry);
+
+		while ($size > 0) {
+			$chunk_size = min($size, 10240);
+			$size -= $chunk_size;
+
+			if (false === ($chunk = zip_entry_read($entry, $chunk_size))) {
+				fclose($unzipped);
+				zip_close($zip);
+				return new WP_Error(
+					'zip_entry_read_fail',
+					sprintf(__('Cannot read chunk from zip entry: %s', 'fw'), $name)
+				);
+			} else {
+				fwrite($unzipped, $chunk);
+			}
+		}
+
+		if (false === fclose($unzipped)) {
+			zip_close($zip);
+			return new WP_Error(
+				'fclose_fail',
+				sprintf(__('Cannot close file: %s', 'fw'), $destination_path)
+			);
+		}
+
+		$result['last_entry'] = $name;
+		++$result['extracted_files'];
+	}
+
+	return $result;
+}

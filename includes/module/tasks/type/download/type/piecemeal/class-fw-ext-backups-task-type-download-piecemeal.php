@@ -11,10 +11,8 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 	public function get_title(array $args = array(), array $state = array()) {
 		if (empty($state)) {
 			return __( 'Downloading', 'fw' );
-		} else {
-			if ($state['position'] < 0) {
-				return __( 'Download finished. Doing unzip', 'fw' );
-			} elseif (!empty($state['filesize']) && $state['position']) {
+		} elseif ('download' === $state['type']) {
+			if (!empty($state['filesize']) && $state['position']) {
 				return sprintf(
 					__( 'Downloading (%s of %s)', 'fw' ),
 					size_format($state['position']), size_format($state['filesize'])
@@ -22,20 +20,14 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 			} else {
 				return __( 'Downloading', 'fw' );
 			}
-		}
-	}
-
-	public function get_custom_timeout(array $args, array $state = array()) {
-		if (!empty($state) && $state['position'] < 0) {
-			/**
-			 * When the download finished, unzip is performed, and it can take long time
-			 */
-			return fw_ext('backups')->get_config('max_timeout');
+		} elseif ('unzip' === $state['type']) {
+			if ($state['extracted_files']) {
+				return sprintf(__('Archive Unzip (%d files extracted)', 'fw'), $state['extracted_files']);
+			} else {
+				return __('Download finished. Doing unzip', 'fw');
+			}
 		} else {
-			/**
-			 * No need to increase timeout because this download type is performed in steps
-			 */
-			return 0;
+			return __( 'Downloading (invalid state)', 'fw' );
 		}
 	}
 
@@ -85,48 +77,38 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 		if (empty($state)) {
 			$state = array(
+				'type' => 'download', // 'unzip'
 				'position' => 0, // byte position in file (also can be used as 'downloaded bytes')
 				'file_size' => 0, // total file size in bytes
 				'piece_size' => $this->get_mb_in_bytes() * 3, // piece size in bytes
 			);
 		}
 
-		$file_path = $args['destination_dir'] .'/'. $this->get_type() .'.zip';
+		$zip_path = $args['destination_dir'] .'/'. $this->get_type() .'.zip';
 
-		if ($state['position'] < 0) {
-			if (!class_exists('ZipArchive')) {
-				return new WP_Error(
-					'zip_ext_missing', __('Zip extension missing', 'fw')
+		if ('download' === $state['type']) {
+			if (true === ($state = $this->do_download($args, $state, $zip_path))) {
+				return array(
+					'type' => 'unzip',
+					'entry' => '',
+					'extracted_files' => 0
 				);
+			} else {
+				return $state;
 			}
-
-			$zip = new ZipArchive();
-
-			if (true !== ($code = $zip->open($file_path))) {
-				return new WP_Error(
-					'zip_open_filed',
-					sprintf(__('Zip open failed (code %d). Please try again', 'fw'), $code)
-				);
-			}
-
-			if (true !== $zip->extractTo($args['destination_dir'])) {
-				return new WP_Error(
-					'zip_extract_filed',
-					__('Zip extract failed', 'fw')
-				);
-			}
-
-			if ($zip->close() !== true) {
-				return new WP_Error(
-					'zip_close_failed',
-					__('Failed to close the zip after extract', 'fw')
-				);
-			}
-
-			return true;
+		} elseif ('unzip' === $state['type']) {
+			return $this->do_unzip($args, $state, $zip_path);
+		} else {
+			return new WP_Error(
+				'invalid_state',
+				__('Partial download invalid state', 'fw')
+			);
 		}
+	}
 
-		$backups = fw_ext('backups'); /** @var FW_Extension_Backups $backups */
+	private function do_download($args, $state, $zip_path) {
+		/** @var FW_Extension_Backups $backups */
+		$backups = fw_ext('backups');
 
 		$response = wp_remote_get(add_query_arg(
 			array(
@@ -155,11 +137,11 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 				sprintf(__('Request failed. Error code: %d', 'fw'), $response_code)
 			);
 		} elseif (
-			(
-				!($position = intval(isset($response['headers']['x-position']) ? $response['headers']['x-position'] : 0))
-				||
-				($position > 0 && $position <= $state['position'])
-			)
+		(
+			!($position = intval(isset($response['headers']['x-position']) ? $response['headers']['x-position'] : 0))
+			||
+			($position > 0 && $position <= $state['position'])
+		)
 		) {
 			return new WP_Error(
 				'invalid_position',
@@ -194,12 +176,12 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 
 			$state['position'] = $position;
 
-			return $state;
+			return true;
 		}
 
 		$state['position'] = $position;
 
-		if (!($f = fopen($file_path, $state['position'] ? 'a' : 'w'))) {
+		if (!($f = fopen($zip_path, $state['position'] ? 'a' : 'w'))) {
 			return new WP_Error(
 				'file_open_fail',
 				__('Failed to open file', 'fw')
@@ -226,5 +208,21 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 		}
 
 		return $state;
+	}
+
+	private function do_unzip($args, $state, $zip_path) {
+		if (is_wp_error($extract_result = fw_ext_backups_unzip_partial(
+			$zip_path, $args['destination_dir'], $state['entry'], 1
+		))) {
+			return $extract_result;
+		} else {
+			if ($extract_result['finished']) {
+				return true;
+			} else {
+				$state['entry'] = $extract_result['last_entry'];
+				$state['extracted_files'] += $extract_result['extracted_files'];
+				return $state;
+			}
+		}
 	}
 }
