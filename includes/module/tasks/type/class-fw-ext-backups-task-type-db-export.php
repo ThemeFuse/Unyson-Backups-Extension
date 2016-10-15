@@ -77,10 +77,9 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 
 		global $wpdb; /** @var WPDB $wpdb */
 
-		$started_time = time();
-		$timeout = $backups->get_timeout() - 7;
+		$max_time = time() + fw_ext( 'backups' )->get_timeout(-7);
 
-		while (time() - $started_time < $timeout) {
+		while (time() < $max_time) {
 			// open file for writing
 			{
 				$file_path = $args['dir'] .'/database.json.txt';

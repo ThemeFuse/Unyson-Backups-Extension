@@ -65,10 +65,9 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 			);
 		}
 
-		$started_time = time();
-		$timeout = $backups->get_timeout() - 7;
+		$max_time = time() + fw_ext( 'backups' )->get_timeout(-7);
 
-		while (time() - $started_time < $timeout) {
+		while (time() < $max_time) {
 			if (empty($args['source_dirs'][ $state['dir_id'] ])) {
 				return new WP_Error(
 					'source_dir_empty',

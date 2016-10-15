@@ -47,7 +47,11 @@ class FW_Extension_Backups extends FW_Extension {
 		return 'export';
 	}
 
-	public function get_timeout() {
+	/**
+	 * @param int $sum Since 2.0.16
+	 * @return int
+	 */
+	public function get_timeout($sum = 0) {
 		$timeout = (int)ini_get('max_execution_time');
 
 		/**
@@ -58,7 +62,7 @@ class FW_Extension_Backups extends FW_Extension {
 			$timeout = $this->get_config('max_timeout');
 		}
 
-		return $timeout;
+		return max($timeout + $sum, 1); // Prevent negative or 0 value
 	}
 
 	/**

@@ -56,10 +56,9 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 		$wp_uploads_dir = wp_upload_dir();
 		$wp_uploads_dir_length = mb_strlen($wp_uploads_dir['basedir']);
 
-		$started_time = time();
-		$timeout = $backups->get_timeout() - 7;
+		$max_time = time() + fw_ext( 'backups' )->get_timeout(-7);
 
-		while (time() - $started_time < $timeout) {
+		while (time() < $max_time) {
 			$attachments = $wpdb->get_results( $wpdb->prepare(
 				$sql, $wpdb->esc_like('image/').'%', $state['attachment_id']
 			), ARRAY_A );

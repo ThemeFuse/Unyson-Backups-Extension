@@ -272,10 +272,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
-		$started_time = time();
-		$timeout      = fw_ext( 'backups' )->get_timeout() - $this->get_timeout_padding();
+		$max_time = time() + fw_ext( 'backups' )->get_timeout(-$this->get_timeout_padding());
 
-		while ( time() - $started_time < $timeout ) {
+		while ( time() < $max_time ) {
 			if ( $line = $fo->current() ) {
 				if ( is_null( $line = json_decode( $line, true ) ) ) {
 					$fo = null;
@@ -472,17 +471,31 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					unset($wp_upload_dir);
 				}
 
-				$search_replace[
-					rtrim($state['params']['siteurl'], '/')
-				] = rtrim(get_option('siteurl'), '/');
-				$search_replace[
-					rtrim($state['params']['home'], '/')
-				] = rtrim(get_option('home'), '/');
+				foreach (array('siteurl', 'home') as $_wp_option) {
+					$search_replace[
+						rtrim($state['params'][$_wp_option], '/')
+					] = rtrim(get_option($_wp_option), '/');
+				}
 
 				foreach ($search_replace as $search => $replace) {
 					$search_replace[
-						fw_get_url_without_scheme($search)
-					] = fw_get_url_without_scheme($replace);
+						($old_url = fw_get_url_without_scheme($search))
+					] = ($new_url = fw_get_url_without_scheme($replace));
+
+					/**
+					 * If imported url is 'http://hello' and current url is 'http://hello.site.com'
+					 * after str_replace() all urls will be broken 'http://hello.site.com.site.com.site.com.site.com'
+					 */
+					if (
+						strlen($old_url) !== strlen($new_url)
+						&&
+						preg_match('/^'. preg_quote($old_url, '/') .'/', $new_url)
+					) {
+						return new WP_Error(
+							'url_replace_fail',
+							sprintf(__('Imported url "%s" is prefix of current url', 'fw'), $search)
+						);
+					}
 				}
 			}
 
@@ -583,10 +596,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 		$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
 
-		$started_time = time();
-		$timeout      = fw_ext( 'backups' )->get_timeout() - $this->get_timeout_padding();
+		$max_time = time() + fw_ext( 'backups' )->get_timeout(-$this->get_timeout_padding());
 
-		while ( time() - $started_time < $timeout ) {
+		while ( time() < $max_time ) {
 			if ( $line = $fo->current() ) {
 				if ( is_null( $line = json_decode( $line, true ) ) ) {
 					$fo = null;
@@ -945,8 +957,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				apply_filters('fw_ext_backups_db_restore_keep_options', array(), $state['full'])
 			);
 
-			$started_time = time();
-			$timeout      = fw_ext( 'backups' )->get_timeout() - $this->get_timeout_padding();
+			$max_time = time() + fw_ext( 'backups' )->get_timeout(-$this->get_timeout_padding());
 
 			// restore array pointer position
 			if ($state['step']) {
@@ -969,7 +980,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			do {
 				$tmp_options_table = esc_sql($this->get_tmp_table_prefix() . 'options');
 
-				while ( time() - $started_time < $timeout ) {
+				while ( time() < $max_time ) {
 					if ($row = $wpdb->get_row($wpdb->prepare(
 						"SELECT * FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
 						$state['step']
