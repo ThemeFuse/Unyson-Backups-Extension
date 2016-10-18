@@ -545,7 +545,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			$collection_tasks[0]->get_id() === $task->get_id() // current task is the first task
 			&&
 			$collection_tasks[0]->get_last_execution_start_time() // the task has never executed
-		) { // fixes https://github.com/ThemeFuse/Unyson/issues/2116
+		) {
+			/**
+			 * Fixes https://github.com/ThemeFuse/Unyson/issues/2116
+			 * @since 2.0.15
+			 */
 			do_action('fw:ext:backups:tasks:start:id:'. $collection->get_id(), $collection);
 			do_action('fw:ext:backups:tasks:start', $collection);
 
