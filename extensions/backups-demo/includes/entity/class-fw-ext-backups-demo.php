@@ -117,7 +117,7 @@ final class FW_Ext_Backups_Demo {
 		$demo->set_screenshot($data['screenshot']);
 		$demo->set_source_type($data['source_type']);
 		$demo->set_source_args($data['source_args']);
-		$demo->set_extra($data['extra']);
+		$demo->set_extra(isset($data['extra']) ? $data['extra'] : array());
 
 		return $demo;
 	}
