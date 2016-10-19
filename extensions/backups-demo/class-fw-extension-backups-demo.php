@@ -84,9 +84,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			array($this, '_filter_fw_ext_backups_db_restore_keep_options')
 		);
 
-		if (!class_exists('FW_Ext_Backups_Demo')) {
-			require_once dirname(__FILE__) .'/includes/entity/class-fw-ext-backups-demo.php';
-		}
+		spl_autoload_register(array($this, '_spl_autoload'));
 	}
 
 	/**
@@ -483,5 +481,17 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		}
 
 		return count($this->get_demos());
+	}
+
+	/**
+	 * @param string $class
+	 * @internal
+	 */
+	public function _spl_autoload($class) {
+		if ('FW_Ext_Backups_Demo' === $class) {
+			// This class is serialized in db and must be defined at the unserialization time
+			// Use autoload instead of including this class on every page load for performance reasons
+			require_once dirname(__FILE__) .'/includes/entity/class-fw-ext-backups-demo.php';
+		}
 	}
 }
