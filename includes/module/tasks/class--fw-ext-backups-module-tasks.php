@@ -850,6 +850,13 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			))
 		);
 
+		/** @since 2.0.16 */
+		do_action('fw:ext:backups:add-backup-tasks', $collection, array(
+			'is_full' => $full,
+			'tmp_dir' => $tmp_dir,
+			'dirs'    => $dirs,
+		));
+
 		return $collection;
 	}
 
@@ -917,6 +924,13 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			$id_prefix .'tmp-dir-clean:after',
 			'dir-clean',
 			array('dir' => $tmp_dir)
+		));
+
+		/** @since 2.0.16 */
+		do_action('fw:ext:backups:add-restore-tasks', $collection, array(
+			'is_full' => $full,
+			'tmp_dir' => $tmp_dir,
+			'dirs'    => $dirs,
 		));
 
 		return $collection;

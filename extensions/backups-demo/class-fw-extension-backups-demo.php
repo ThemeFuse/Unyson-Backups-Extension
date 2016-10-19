@@ -409,6 +409,12 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 
 		self::backups()->tasks()->add_restore_tasks($collection);
 
+		/** @since 2.0.16 */
+		do_action('fw:ext:backups-demo:add-install-tasks', $collection, array(
+			'demo' => $demo,
+			'tmp_dir' => $tmp_dir,
+		));
+
 		$this->set_active_demo(array('id' => $demo->get_id(), 'result' => null));
 
 		self::backups()->tasks()->execute_task_collection($collection);
