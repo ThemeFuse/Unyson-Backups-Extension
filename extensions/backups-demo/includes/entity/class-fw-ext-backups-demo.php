@@ -94,6 +94,7 @@ final class FW_Ext_Backups_Demo {
 	}
 
 	/**
+	 * @return array
 	 * @since 2.0.16
 	 */
 	public function get_extra() {
@@ -101,9 +102,11 @@ final class FW_Ext_Backups_Demo {
 	}
 
 	/**
+	 * @param array $extra
+	 * @return $this
 	 * @since 2.0.16
 	 */
-	public function set_extra($extra) {
+	public function set_extra(array $extra) {
 		$this->extra = $extra;
 
 		return $this;
@@ -114,6 +117,7 @@ final class FW_Ext_Backups_Demo {
 		$demo->set_screenshot($data['screenshot']);
 		$demo->set_source_type($data['source_type']);
 		$demo->set_source_args($data['source_args']);
+		$demo->set_extra($data['extra']);
 
 		return $demo;
 	}
@@ -124,6 +128,7 @@ final class FW_Ext_Backups_Demo {
 			'screenshot' => $this->get_screenshot(),
 			'source_type' => $this->get_source_type(),
 			'source_args' => $this->get_source_args(),
+			'extra' => $this->get_extra(),
 		);
 	}
 }
