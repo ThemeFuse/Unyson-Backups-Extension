@@ -28,6 +28,11 @@ final class FW_Ext_Backups_Demo {
 
 	private $title;
 
+	/**
+	 * @since 2.0.16
+	 */
+	private $extra = array();
+
 	public function __construct($id, $source_type = null, $source_args = array()) {
 		$this->id = $id;
 		$this->source_type = $source_type;
@@ -84,6 +89,22 @@ final class FW_Ext_Backups_Demo {
 
 	public function set_title($title) {
 		$this->title = $title;
+
+		return $this;
+	}
+
+	/**
+	 * @since 2.0.16
+	 */
+	public function get_extra() {
+		return $this->extra;
+	}
+
+	/**
+	 * @since 2.0.16
+	 */
+	public function set_extra($extra) {
+		$this->extra = $extra;
 
 		return $this;
 	}

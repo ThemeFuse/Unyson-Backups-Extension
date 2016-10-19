@@ -83,6 +83,10 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			'fw_ext_backups_db_restore_keep_options',
 			array($this, '_filter_fw_ext_backups_db_restore_keep_options')
 		);
+
+		if (!class_exists('FW_Ext_Backups_Demo')) {
+			require_once dirname(__FILE__) .'/includes/entity/class-fw-ext-backups-demo.php';
+		}
 	}
 
 	/**
@@ -126,10 +130,6 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		if (is_null(self::$demos)) {
 			$demos = array();
 
-			if (!class_exists('FW_Ext_Backups_Demo')) {
-				require_once dirname(__FILE__) .'/includes/entity/class-fw-ext-backups-demo.php';
-			}
-
 			foreach (apply_filters('fw_ext_backups_demo_dirs', array(
 				fw_fix_path(get_template_directory()) .'/demo-content'
 				=>
@@ -161,6 +161,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 							'title' => fw_id_to_title($demo_dir_name),
 							'screenshot' => fw_get_framework_directory_uri('/static/img/no-image.png'),
 							'preview_link' => '',
+							'extra' => array(),
 						), $manifest['manifest']);
 					}
 
@@ -172,6 +173,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 					$demo->set_title($manifest['title']);
 					$demo->set_screenshot($manifest['screenshot']);
 					$demo->set_preview_link($manifest['preview_link']);
+					$demo->set_extra($manifest['extra']);
 
 					$demos[ $demo->get_id() ] = $demo;
 
