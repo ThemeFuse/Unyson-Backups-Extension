@@ -578,20 +578,56 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		 * Rename wp_option names which contain stylesheed in their names
 		 * Fixes https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/27
 		 */
-		if (
-			is_child_theme() // Fixes https://github.com/ThemeFuse/Unyson/issues/1952
-			&&
-			! empty($state['params']['stylesheet'])
-			&&
-			$state['params']['stylesheet'] !== get_template()
-		) {
-			$replace_option_names = array_merge(
-				/** @since 2.0.12 */
-				apply_filters('fw_ext_backups_db_restore_option_names_replace', array(), array(
-					'stylesheet' => $state['params']['stylesheet'],
-				)),
-				array( 'theme_mods_'. $state['params']['stylesheet'] => 'theme_mods_'. get_stylesheet() )
-			);
+		{
+			$replace_option_names = array();
+
+			{
+				$filter_data = array();
+
+				if (
+					! empty($state['params']['template'])
+					&&
+					// do nothing if it's the same
+					$state['params']['template'] !== get_template()
+					&&
+					// prevent rename template to stylesheet and duplicate wp_option error
+					$state['params']['template'] !== get_stylesheet()
+				) {
+					$filter_data['template'] = $state['params']['template'];
+
+					$replace_option_names[
+						'theme_mods_'. $state['params']['template']
+					] = 'theme_mods_'. get_template();
+				}
+
+				if (
+					is_child_theme() // must be: get_stylesheet() !== get_template()
+					&&
+					! empty($state['params']['stylesheet'])
+					&&
+					// do nothing if it's the same
+					$state['params']['stylesheet'] !== get_stylesheet()
+					&&
+					// prevent rename stylesheet to template and duplicate wp_option error
+					$state['params']['stylesheet'] !== get_template()
+				) {
+					$filter_data['stylesheet'] = $state['params']['stylesheet'];
+
+					$replace_option_names[
+						'theme_mods_'. $state['params']['stylesheet']
+					] = 'theme_mods_'. get_stylesheet();
+				}
+			}
+
+			if ( ! empty($filter_data) ) {
+				$replace_option_names = array_merge(
+					/** @since 2.0.12 */
+					apply_filters('fw_ext_backups_db_restore_option_names_replace', array(), $filter_data),
+					$replace_option_names
+				);
+			}
+
+			unset($filter_data);
 		}
 
 		$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
