@@ -489,8 +489,6 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 	 */
 	public function _spl_autoload($class) {
 		if ('FW_Ext_Backups_Demo' === $class) {
-			// This class is serialized in db and must be defined at the unserialization time
-			// Use autoload instead of including this class on every page load for performance reasons
 			require_once dirname(__FILE__) .'/includes/entity/class-fw-ext-backups-demo.php';
 		}
 	}
