@@ -10,7 +10,7 @@ $manifest['description'] = __(
 	.' import demo content or even create a demo content archive for migration purposes.',
 	'fw'
 );
-$manifest['version'] = '2.0.15';
+$manifest['version'] = '2.0.16';
 $manifest['display'] = true;
 $manifest['standalone'] = true;
 $manifest['requirements'] = array(
