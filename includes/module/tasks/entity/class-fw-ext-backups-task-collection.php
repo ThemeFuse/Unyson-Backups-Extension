@@ -82,6 +82,20 @@ final class FW_Ext_Backups_Task_Collection {
 	}
 
 	/**
+	 * Empty out the collection internal state and return the deleted tasks
+	 *
+	 * @return FW_Ext_Backups_Task[]
+	 * @since 2.0.17
+	 */
+	public function empty_collection() {
+		$tmp = $this->tasks;
+
+		$this->tasks = array();
+
+		return $tmp;
+	}
+
+	/**
 	 * @param string $id
 	 *
 	 * @return FW_Ext_Backups_Task|null
