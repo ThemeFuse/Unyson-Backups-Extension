@@ -295,21 +295,18 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		$is_busy = $this->install_is_busy();
 		$active_demo = $this->get_active_demo();
 
-		/**
-		 * @since 2.0.17
-		 */
-		$has_to_reset_active_demo = apply_filters(
-			'fw_ext_backups_demo_has_to_reset_active_demo',
-			true
-		);
-
-		if ($has_to_reset_active_demo) {
-
+		if (
+			/**
+			 * When the tasks are changed via hook, this code is not relevant and must not be executed
+			 * So it can be disabled using this filter
+			 * @since 2.0.17
+			 */
+			apply_filters('fw_ext_backups_demo_has_to_reset_active_demo', true)
+		) {
 			if ($active_demo['result']) {
 				// if result is finished, reset, to prevent same message on next request
 				$this->set_active_demo(array('id' => '', 'result' => null));
 			}
-
 		}
 
 		// in case the execution chain stopped and there is a pending task
