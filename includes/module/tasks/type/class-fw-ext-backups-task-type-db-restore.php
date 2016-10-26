@@ -585,22 +585,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				$filter_data = array();
 
 				if (
-					! empty($state['params']['template'])
-					&&
-					// do nothing if it's the same
-					$state['params']['template'] !== get_template()
-					&&
-					// prevent rename template to stylesheet and duplicate wp_option error
-					$state['params']['template'] !== get_stylesheet()
-				) {
-					$filter_data['template'] = $state['params']['template'];
-
-					$replace_option_names[
-						'theme_mods_'. $state['params']['template']
-					] = 'theme_mods_'. get_template();
-				}
-
-				if (
 					is_child_theme() // must be: get_stylesheet() !== get_template()
 					&&
 					! empty($state['params']['stylesheet'])
@@ -616,6 +600,22 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$replace_option_names[
 						'theme_mods_'. $state['params']['stylesheet']
 					] = 'theme_mods_'. get_stylesheet();
+				}
+
+				if (
+					! empty($state['params']['template'])
+					&&
+					// do nothing if it's the same
+					$state['params']['template'] !== get_template()
+					&&
+					// prevent rename template to stylesheet and duplicate wp_option error
+					$state['params']['template'] !== get_stylesheet()
+				) {
+					$filter_data['template'] = $state['params']['template'];
+
+					$replace_option_names[
+						'theme_mods_'. $state['params']['template']
+					] = 'theme_mods_'. get_template();
 				}
 			}
 
