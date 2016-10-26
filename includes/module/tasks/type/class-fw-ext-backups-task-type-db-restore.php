@@ -605,6 +605,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				if (
 					! empty($state['params']['template'])
 					&&
+					// prevent template overwrite stylesheet (prefer stylesheet)
+					$state['params']['template'] !== $state['params']['stylesheet']
+					&&
 					// do nothing if it's the same
 					$state['params']['template'] !== get_template()
 					&&
