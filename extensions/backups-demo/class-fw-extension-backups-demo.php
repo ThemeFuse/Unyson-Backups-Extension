@@ -298,7 +298,7 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		if (
 			/**
 			 * When the tasks are changed via hook, this code is not relevant and must not be executed
-			 * So it can be disabled using this filter
+			 * so it can be disabled using this filter
 			 * @since 2.0.17
 			 */
 			apply_filters('fw_ext_backups_demo_has_to_reset_active_demo', true)

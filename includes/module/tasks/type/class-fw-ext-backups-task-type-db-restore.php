@@ -747,11 +747,27 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							! empty($replace_option_names)
 							&&
 							$line['data']['table'] === 'options'
-							&&
-						    isset($replace_option_names[ $line['data']['row']['option_name'] ])
 						) {
-							$line['data']['row']['option_name']
-								= $replace_option_names[ $line['data']['row']['option_name'] ];
+							if (isset($replace_option_names[ $line['data']['row']['option_name'] ])) {
+								$line['data']['row']['option_name']
+									= $replace_option_names[ $line['data']['row']['option_name'] ];
+							} elseif (in_array($line['data']['row']['option_name'], $replace_option_names, true)) {
+								/**
+								 * Skip
+								 *
+								 * Do not insert this option because it will be (was) inserted on rename/replace (above)
+								 * Prevent 'Duplicate entry' error https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/34
+								 *
+								 * This happens when:
+								 * 1) On Content Backup 'stylesheet' or 'template' is 'theme-name/theme-name'
+								 *    but in db there is also 'theme-name' (saved before the theme changed its directory)
+								 * 2) On Demo Content Install 'stylesheet' or 'template' is 'theme-name'
+								 * 3) The script does replace old 'theme-name/theme-name' to current 'theme-name'
+								 *    but that 'theme-name' from (1) conflicts with current 'theme-name'
+								 * The solution is to ignore/skip 'theme-name' from 1)
+								 */
+								break;
+							}
 						}
 
 						if (isset($state['params']['wpdb_prefix'])) {
