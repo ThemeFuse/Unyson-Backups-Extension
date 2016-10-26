@@ -295,6 +295,9 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		$is_busy = $this->install_is_busy();
 		$active_demo = $this->get_active_demo();
 
+		/**
+		 * @since 2.0.17
+		 */
 		$has_to_reset_active_demo = apply_filters(
 			'fw_ext_backups_demo_has_to_reset_active_demo',
 			true
