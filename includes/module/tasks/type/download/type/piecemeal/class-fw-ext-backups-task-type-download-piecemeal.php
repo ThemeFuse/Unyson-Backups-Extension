@@ -110,12 +110,22 @@ class FW_Ext_Backups_Task_Type_Download_Piecemeal extends FW_Ext_Backups_Task_Ty
 		/** @var FW_Extension_Backups $backups */
 		$backups = fw_ext('backups');
 
+		$defaults = array(
+			'id' => urlencode($args['file_id']),
+			'position' => $state['position'],
+			'size' => $state['piece_size']
+		);
+
+		/**
+		 * @since 2.0.18
+		 */
+		$query_arguments = apply_filters(
+			'fw:ext:backups:task-type:piecemeal-download:query-args',
+			$defaults, $args
+		);
+
 		$response = wp_remote_get(add_query_arg(
-			array(
-				'id' => urlencode($args['file_id']),
-				'position' => $state['position'],
-				'size' => $state['piece_size'],
-			),
+			array_merge($query_arguments, $defaults),
 			$args['url']
 		), array(
 			'timeout' => $backups->get_timeout() - 7
