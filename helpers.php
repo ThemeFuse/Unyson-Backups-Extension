@@ -206,7 +206,7 @@ function fw_ext_backups_unzip_partial($zip, $destination_dir, $last_entry = '', 
 	if ($timeout <= 0) {
 		/** @var FW_Extension_Backups $ext */
 		$ext = fw_ext('backups');
-		$timeout = $ext->get_timeout() - 10;
+		$timeout = $ext->get_timeout(-10);
 	}
 
 	if ($last_entry) {

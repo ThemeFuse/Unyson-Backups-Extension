@@ -55,6 +55,12 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		if (empty($state)) {
+			$state = array(
+				'files_count' => 0,
+			);
+		}
+
 		{
 			if (!class_exists('ZipArchive')) {
 				return new WP_Error(
@@ -62,9 +68,9 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				);
 			}
 
-			$zip_path = $args['source_dir'] .'/'. implode('-',
-				array('fw-backup', date('Y_m_d-H_i_s'), fw_ext('backups')->manifest->get_version())
-			) .'.zip';
+			$zip_path = $args['source_dir']
+				.'/'. implode('-', array('fw-backup', date('Y_m_d-H_i_s'), fw_ext('backups')->manifest->get_version()))
+				.'.zip';
 			$zip = new ZipArchive();
 
 			if (false === ($zip_error_code = $zip->open($zip_path, ZipArchive::CREATE))) {
@@ -74,40 +80,77 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			}
 		}
 
+		/** @var FW_Extension_Backups $ext */
+		$ext = fw_ext('backups');
+		$max_time = time()
+			/**
+			 * Files for zip (in pending) are added very fast
+			 * but on zip close the processing/zipping starts and it is time consuming
+			 * so allocate little time for files add and leave as much time as possible for $zip->close();
+			 */
+			+ min(abs($ext->get_timeout() / 2), 10);
+		// $zip->setCompression*() was introduced in PHP 7.0
+		$set_compression_is_available = method_exists($zip, 'setCompressionName');
+		$files_count = 0;
 		$files = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator($args['source_dir']),
 			RecursiveIteratorIterator::LEAVES_ONLY
 		);
 
-		$files_count = 0;
+		foreach ($files as $file) {
+			if ($execution_not_finished = (time() > $max_time)) {
+				break;
+			}
 
-		foreach ($files as $name => $file) {
-			if (!$file->isDir()) { // Skip directories (they would be added automatically)
-				if (($file_path = $file->getRealPath()) !== $zip_path) {
-					$zip->addFile(
-						$file_path,
-						substr(fw_fix_path($file_path), strlen($args['source_dir']) + 1) // relative
-					);
-					++$files_count;
-				}
+			if (!$this->file_is_zipable($file, $zip_path)) {
+				continue;
+			}
+
+			++$files_count;
+
+			if ($state['files_count'] > $files_count) {
+				// skip already compressed files in previous step
+				continue;
+			}
+
+			$zip->addFile(
+				($file_path = $file->getRealPath()),
+				$file_zip_path = substr(fw_fix_path($file_path), strlen($args['source_dir']) + 1) // relative
+			);
+
+			if ($set_compression_is_available) {
+				$zip->setCompressionName(
+					$file_zip_path,
+					/**
+					 * The Store method does not compress the file
+					 * on slow servers this will be a huge speed improvement
+					 * (of course by sacrificing the zip file size)
+					 * http://php.net/manual/en/zip.constants.php#ziparchive.constants.cm-store
+					 */
+					ZipArchive::CM_STORE
+				);
 			}
 		}
 
-		wp_cache_flush();
-		FW_Cache::clear();
+		// Zip archive will be created only after closing the object
+		if (!$zip->close()) {
+			return new WP_Error(
+				'cannot_close_zip', __('Cannot close the zip file', 'fw')
+			);
+		}
+
+		$state['files_count'] = $files_count;
+
+		if ($execution_not_finished) {
+			// There are more files to be processed, the execution hasn't finished
+			return $state;
+		}
 
 		if (!$files_count) {
 			/**
 			 * Happens on Content Backup when uploads/ is empty
 			 */
 			return true;
-		}
-
-		// Zip archive will be created only after closing object
-		if (!$zip->close()) {
-			return new WP_Error(
-				'cannot_close_zip', __('Cannot close the zip file', 'fw')
-			);
 		}
 
 		if (!rename($zip_path, $args['destination_dir'] .'/'. basename($zip_path))) {
@@ -118,5 +161,13 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		}
 
 		return true;
+	}
+
+	private function file_is_zipable($file, $zip_path) {
+		return (
+			!$file->isDir() // Skip directories (they will be created automatically)
+			&&
+			$file->getRealPath() !== $zip_path
+		);
 	}
 }
