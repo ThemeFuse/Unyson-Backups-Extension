@@ -87,6 +87,8 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			 * Files for zip (in pending) are added very fast
 			 * but on zip close the processing/zipping starts and it is time consuming
 			 * so allocate little time for files add and leave as much time as possible for $zip->close();
+			 *
+			 * TODO: Limit number of files and/or total files size added in zip in one/current step
 			 */
 			+ min(abs($ext->get_timeout() / 2), 10);
 		// $zip->setCompression*() was introduced in PHP 7.0
