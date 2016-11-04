@@ -271,6 +271,17 @@ class FW_Extension_Backups extends FW_Extension {
 					'is_busy' => $is_busy,
 				)),
 			),
+			'ajax_steps' => array(
+				'token' => md5(
+					defined('NONCE_SALT')
+						? NONCE_SALT
+						: $this->manifest->get_version()
+				),
+				'active_tasks_hash' => (($collection = $this->tasks()->get_active_task_collection())
+					? md5(serialize($collection))
+					: ''
+				)
+			),
 		);
 
 		wp_send_json_success(array_merge(
