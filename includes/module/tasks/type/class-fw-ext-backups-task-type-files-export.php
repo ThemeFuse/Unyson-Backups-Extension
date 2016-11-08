@@ -44,6 +44,14 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 					);
 				}
 
+				/**
+				 * @since 2.0.18
+				 */
+				$args['exclude_paths'] = apply_filters(
+					'fw:ext:backups:task-type:files-export:exclude-paths',
+					$args['exclude_paths']
+				);
+
 				$wp_upload_dir = wp_upload_dir();
 
 				$args['exclude_paths'] = array_merge($args['exclude_paths'], array(
