@@ -10,6 +10,10 @@ $manifest['description'] = __(
 	.' import demo content or even create a demo content archive for migration purposes.',
 	'fw'
 );
+$manifest['author'] = 'ThemeFuse';
+$manifest['author_uri'] = 'http://themefuse.com/';
+$manifest['github_repo'] = 'https://github.com/ThemeFuse/Unyson-Backups-Extension';
+$manifest['uri'] = 'http://manual.unyson.io/en/latest/extension/backups/index.html';
 $manifest['version'] = '2.0.17';
 $manifest['display'] = true;
 $manifest['standalone'] = true;
