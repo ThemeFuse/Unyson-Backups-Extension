@@ -616,7 +616,13 @@ class FW_Extension_Backups extends FW_Extension {
 			 * Read and output parts
 			 */
 			{
-				$output_buffer_size = (int)ini_get('output_buffering');
+				$output_buffer_size = max(
+					// https://github.com/ThemeFuse/Unyson/issues/2070#issuecomment-258427852
+					(int)ini_get('output_buffering'),
+					// default to this value in case ini_get() will return 0 (some server restrictions)
+					// http://php.net/manual/en/outcontrol.configuration.php#ini.output-buffering
+					4096
+				);
 
 				while (!feof($f)) {
 					echo fread($f, $output_buffer_size);
