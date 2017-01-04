@@ -615,8 +615,13 @@ class FW_Extension_Backups extends FW_Extension {
 			 * Some files can be huge, do not load entire file in php memory then output, it can cause memory limit error
 			 * Read and output parts
 			 */
-			while (!feof($f)) {
-				echo fread($f, 1000000);
+			{
+				$output_buffer_size = (int)ini_get('output_buffering');
+
+				while (!feof($f)) {
+					echo fread($f, $output_buffer_size);
+					flush();
+				}
 			}
 
 			fclose($f);
