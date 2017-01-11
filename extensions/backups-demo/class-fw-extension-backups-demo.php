@@ -114,9 +114,20 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 	public function _display_page() {
 		echo '<div class="wrap">';
 
-		$this->render_view('page', array(
-			'demos' => $this->get_demos(),
-		), false);
+		if (function_exists('is_wpe_snapshot') && !is_wpe_snapshot()) {
+			echo '<div class="error"><p>',
+			sprintf(
+				esc_html__('Demo Content Install works only in %s.', 'fw'),
+				'<a href="'. esc_attr(admin_url('admin.php?page=wpengine-staging')) .'">'
+				. esc_html__('Staging', 'fw')
+				. '</a>'
+			),
+			'</p></div>';
+		} else {
+			$this->render_view('page', array(
+				'demos' => $this->get_demos(),
+			), false);
+		}
 
 		echo '</div>';
 	}
