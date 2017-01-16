@@ -65,7 +65,10 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 		/** @var FW_Extension_Backups $backups */
 		$backups = fw_ext( 'backups' );
 
-		$max_time = time() + $backups->get_timeout(-10); // -SECONDS that one image size can take on a very slow server
+		$max_time = time() + $backups->get_timeout(
+			// -SECONDS that one image size can take on a very slow server
+			-20 // Fixes https://github.com/ThemeFuse/Unyson/issues/2257#issuecomment-272604225
+		);
 
 		while (time() < $max_time) {
 			if ( $attachment_id = $wpdb->get_col(
