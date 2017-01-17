@@ -94,7 +94,9 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		if (
 			!current_user_can(self::backups()->get_capability())
 			||
-		    !$this->get_demos()
+			!$this->get_demos()
+			||
+			!class_exists('ZipArchive')
 		) {
 			return;
 		}

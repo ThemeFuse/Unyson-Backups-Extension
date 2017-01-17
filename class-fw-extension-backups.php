@@ -420,16 +420,24 @@ class FW_Extension_Backups extends FW_Extension {
 	 * @internal
 	 */
 	public function _action_admin_menu() {
-		call_user_func_array(
-			is_multisite() && is_network_admin() ? 'add_menu_page' : 'add_management_page',
-			array(
-				__('Backup', 'fw'),
-				__('Backup', 'fw'),
-				$this->get_capability(),
-				$this->get_page_slug(),
-				array($this, '_render_page')
-			)
-		);
+		if (class_exists('ZipArchive')) {
+			call_user_func_array(
+				is_multisite() && is_network_admin() ? 'add_menu_page' : 'add_management_page',
+				array(
+					__( 'Backup', 'fw' ),
+					__( 'Backup', 'fw' ),
+					$this->get_capability(),
+					$this->get_page_slug(),
+					array( $this, '_render_page' )
+				)
+			);
+		} else {
+			FW_Flash_Messages::add(
+				'zip-required',
+				__('Unyson Backup requires php zip extension', 'fw'),
+				'error'
+			);
+		}
 	}
 
 	/**
@@ -440,10 +448,7 @@ class FW_Extension_Backups extends FW_Extension {
 		$archives = array();
 
 		if (!class_exists('ZipArchive')) {
-			trigger_error(
-				__('Class ZipArchive not found. Please install php zip extension', 'fw'),
-				E_USER_WARNING
-			);
+			return $archives;
 		} elseif ($paths = glob($this->get_backups_dir() .'/*.zip')) {
 			foreach ( $paths as $path ) {
 				{
