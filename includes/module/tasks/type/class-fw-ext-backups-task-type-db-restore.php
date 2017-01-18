@@ -44,6 +44,32 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	}
 
 	/**
+	 * @param string $engine
+	 * @return bool
+	 * @since 2.0.20
+	 */
+	private function engine_is_supported($engine) {
+		try {
+			$engines = FW_Cache::get($cache_key = 'fw:ext:backups:db-engines');
+		} catch (FW_Cache_Not_Found_Exception $e) {
+			/** @var wpdb $wpdb */
+			global $wpdb;
+
+			$engines = array();
+
+			if ($list = $wpdb->get_results('SHOW ENGINES', ARRAY_A)) {
+				foreach ($list as $item) {
+					$engines[ $item['Engine'] ] = in_array($item['Support'], array('YES', 'DEFAULT'), true);
+				}
+			}
+
+			FW_Cache::set($cache_key, $engines);
+		}
+
+		return isset($engines[$engine]) && $engines[$engine];
+	}
+
+	/**
 	 * {@inheritdoc}
 	 * @param array $args
 	 * * dir - source directory in which is located `database.json.txt`
@@ -699,11 +725,20 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								unset( $cols_sql );
 							}
 
-							$sql .= ') ' . (
-								$utf8mb4_is_supported
-									? $line['data']['opts']
-									: str_replace( 'utf8mb4', 'utf8', $line['data']['opts'] )
-								);
+							// $line['data']['opts']
+							{
+								if (!$this->engine_is_supported('InnoDB')) {
+									// fallback to MyISAM if InnoDB is not supported
+									// https://github.com/ThemeFuse/Unyson/issues/2175
+									$line['data']['opts'] = str_replace('InnoDB', 'MyISAM', $line['data']['opts']);
+								}
+
+								if (!$utf8mb4_is_supported) {
+									$line['data']['opts'] = str_replace( 'utf8mb4', 'utf8', $line['data']['opts'] );
+								}
+
+								$sql .= ') ' . $line['data']['opts'];
+							}
 						}
 
 						if ( false === $wpdb->query( $sql ) ) {
