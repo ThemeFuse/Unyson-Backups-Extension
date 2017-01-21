@@ -431,7 +431,7 @@ class FW_Extension_Backups extends FW_Extension {
 					array( $this, '_render_page' )
 				)
 			);
-		} else {
+		} else if (is_admin() && current_user_can($this->get_capability())) {
 			FW_Flash_Messages::add(
 				'zip-required',
 				__('Unyson Backup requires php zip extension', 'fw'),
