@@ -434,7 +434,16 @@ class FW_Extension_Backups extends FW_Extension {
 		} else if (is_admin() && current_user_can($this->get_capability())) {
 			FW_Flash_Messages::add(
 				'zip-required',
-				__('Unyson Backup requires php zip extension', 'fw'),
+				sprintf(
+					__('%s requires %s', 'fw'),
+					fw_html_tag('a', array(
+						'href' => menu_page_url(fw()->extensions->manager->get_page_slug(), false) .'#ext-backups',
+					), __('Unyson Backup', 'fw')),
+					fw_html_tag('a', array(
+						'href' => 'https://www.google.com/search#q=hosting+enable+php+zip',
+						'target' => '_blank',
+					), __('php zip extension', 'fw'))
+				),
 				'error'
 			);
 		}
