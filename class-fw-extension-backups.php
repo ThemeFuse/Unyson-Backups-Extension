@@ -622,8 +622,10 @@ class FW_Extension_Backups extends FW_Extension {
 				break;
 			}
 
-			header('Content-Disposition: attachment; filename="'. esc_attr($archive_filename) .'"');
 			header('Content-Type: application/zip, application/octet-stream');
+			header('Content-Disposition: attachment; filename="'. esc_attr($archive_filename) .'"');
+			header('Content-length: '. filesize($archive['path']));
+			header('Cache-control: private');
 
 			/**
 			 * Some files can be huge, do not load entire file in php memory then output, it can cause memory limit error
@@ -640,6 +642,7 @@ class FW_Extension_Backups extends FW_Extension {
 
 				while (!feof($f)) {
 					echo fread($f, $output_buffer_size);
+					ob_flush();
 					flush();
 				}
 			}
