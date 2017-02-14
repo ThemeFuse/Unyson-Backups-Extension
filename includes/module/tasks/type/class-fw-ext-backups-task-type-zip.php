@@ -58,6 +58,12 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		if (empty($state)) {
 			$state = array(
 				'files_count' => 0,
+				// generate the file name only on first step
+				'zip_path' => $args['source_dir'] .'/'. implode('-', array(
+						'fw-backup',
+						date('Y_m_d-H_i_s'),
+						fw_ext('backups')->manifest->get_version()
+					)) .'.zip'
 			);
 		}
 
@@ -68,12 +74,9 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				);
 			}
 
-			$zip_path = $args['source_dir']
-				.'/'. implode('-', array('fw-backup', date('Y_m_d-H_i_s'), fw_ext('backups')->manifest->get_version()))
-				.'.zip';
 			$zip = new ZipArchive();
 
-			if (false === ($zip_error_code = $zip->open($zip_path, ZipArchive::CREATE))) {
+			if (false === ($zip_error_code = $zip->open($state['zip_path'], ZipArchive::CREATE))) {
 				return new WP_Error(
 					'cannot_open_zip', sprintf(__('Cannot open zip (Error code: %s)', 'fw'), $zip_error_code)
 				);
@@ -104,21 +107,23 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				break;
 			}
 
-			if (!$this->file_is_zipable($file, $zip_path)) {
+			$file_path = fw_fix_path($file->getRealPath());
+			$file_zip_path = substr($file_path, strlen($args['source_dir']) + 1); // relative
+
+			if (
+				$file->isDir() // Skip directories (they will be created automatically)
+				||
+				$file_path === $state['zip_path'] // this happens when zip exists from previous step
+			) {
 				continue;
 			}
 
-			++$files_count;
-
-			if ($state['files_count'] > $files_count) {
+			if ((++$files_count) < $state['files_count']) {
 				// skip already compressed files in previous step
 				continue;
 			}
 
-			$zip->addFile(
-				($file_path = $file->getRealPath()),
-				$file_zip_path = substr(fw_fix_path($file_path), strlen($args['source_dir']) + 1) // relative
-			);
+			$zip->addFile($file_path, $file_zip_path);
 
 			if ($set_compression_is_available) {
 				$zip->setCompressionName(
@@ -155,7 +160,7 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 			return true;
 		}
 
-		if (!rename($zip_path, $args['destination_dir'] .'/'. basename($zip_path))) {
+		if (!rename($state['zip_path'], $args['destination_dir'] .'/'. basename($state['zip_path']))) {
 			return new WP_Error(
 				'cannot_move_zip',
 				__('Cannot move zip in destination dir', 'fw')
@@ -163,13 +168,5 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		}
 
 		return true;
-	}
-
-	private function file_is_zipable($file, $zip_path) {
-		return (
-			!$file->isDir() // Skip directories (they will be created automatically)
-			&&
-			$file->getRealPath() !== $zip_path
-		);
 	}
 }
