@@ -115,6 +115,29 @@ class FW_Extension_Backups extends FW_Extension {
 		}
 	}
 
+	/**
+	 * @since 2.0.22
+	 * @return string Error message
+	 */
+	public function server_requirements_not_met() {
+		if (class_exists('ZipArchive')) {
+			return false;
+		} else {
+			return sprintf(
+				__('Oops, %s requires %s but it is not enabled on your server. If you are not familiar with PHP Zip module, please contact your hosting provider.', 'fw'),
+				fw_html_tag('a', array(
+					'href' => function_exists('menu_page_url')
+						? menu_page_url(fw()->extensions->manager->get_page_slug(), false) .'#ext-backups'
+						: '#',
+				), __('Unyson Backup', 'fw')),
+				fw_html_tag('a', array(
+					'href' => 'https://www.google.com/search#q=hosting+enable+php+zip',
+					'target' => '_blank',
+				), __('PHP Zip module', 'fw'))
+			);
+		}
+	}
+
 	protected function _init() {
 		{
 			if (!$this->is_disabled()) {
@@ -420,33 +443,16 @@ class FW_Extension_Backups extends FW_Extension {
 	 * @internal
 	 */
 	public function _action_admin_menu() {
-		if (class_exists('ZipArchive')) {
-			call_user_func_array(
-				is_multisite() && is_network_admin() ? 'add_menu_page' : 'add_management_page',
-				array(
-					__( 'Backup', 'fw' ),
-					__( 'Backup', 'fw' ),
-					$this->get_capability(),
-					$this->get_page_slug(),
-					array( $this, '_render_page' )
-				)
-			);
-		} else if (is_admin() && current_user_can($this->get_capability())) {
-			FW_Flash_Messages::add(
-				'zip-required',
-				sprintf(
-					__('%s requires %s', 'fw'),
-					fw_html_tag('a', array(
-						'href' => menu_page_url(fw()->extensions->manager->get_page_slug(), false) .'#ext-backups',
-					), __('Unyson Backup', 'fw')),
-					fw_html_tag('a', array(
-						'href' => 'https://www.google.com/search#q=hosting+enable+php+zip',
-						'target' => '_blank',
-					), __('php zip extension', 'fw'))
-				),
-				'error'
-			);
-		}
+		call_user_func_array(
+			is_multisite() && is_network_admin() ? 'add_menu_page' : 'add_management_page',
+			array(
+				__( 'Backup', 'fw' ),
+				__( 'Backup', 'fw' ),
+				$this->get_capability(),
+				$this->get_page_slug(),
+				array( $this, '_render_page' )
+			)
+		);
 	}
 
 	/**
@@ -456,7 +462,7 @@ class FW_Extension_Backups extends FW_Extension {
 	public function get_archives($full = null) {
 		$archives = array();
 
-		if (!class_exists('ZipArchive')) {
+		if ($this->server_requirements_not_met()) {
 			return $archives;
 		} elseif ($paths = glob($this->get_backups_dir() .'/*.zip')) {
 			foreach ( $paths as $path ) {
@@ -512,12 +518,16 @@ class FW_Extension_Backups extends FW_Extension {
 	public function _render_page() {
 		echo '<div class="wrap">';
 
-		$this->render_view('page', array(
-			'archives_html' => $this->render_view('archives', array(
-				'archives' => $this->get_archives(),
-				'is_busy' => (bool)$this->tasks()->get_active_task_collection(),
-			)),
-		), false);
+		if ($error_message = $this->server_requirements_not_met()) {
+			echo "<div class=\"notice notice-error\"><p>{$error_message}</p></div>";
+		} else {
+			$this->render_view( 'page', array(
+				'archives_html' => $this->render_view( 'archives', array(
+					'archives' => $this->get_archives(),
+					'is_busy'  => (bool) $this->tasks()->get_active_task_collection(),
+				) ),
+			), false );
+		}
 
 		echo '</div>';
 

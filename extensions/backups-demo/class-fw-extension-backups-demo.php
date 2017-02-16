@@ -95,8 +95,6 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			!current_user_can(self::backups()->get_capability())
 			||
 			!$this->get_demos()
-			||
-			!class_exists('ZipArchive')
 		) {
 			return;
 		}
@@ -125,6 +123,8 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 				. '</a>'
 			),
 			'</p></div>';
+		} elseif ($error_message = $this->get_parent()->server_requirements_not_met()) {
+			echo "<div class=\"notice notice-error\"><p>{$error_message}</p></div>";
 		} else {
 			$this->render_view('page', array(
 				'demos' => $this->get_demos(),
