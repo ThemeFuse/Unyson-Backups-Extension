@@ -630,27 +630,44 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			return false;
 		}
 
-		$http = new WP_Http();
-		$http->post(
-			site_url( 'wp-admin/admin-ajax.php' ),
-			array(
-				/**
-				 * The request should start (in background) and current request should (continue and) stop
-				 * without stopping the started background request execution
-				 */
-				'blocking' => false,
-				'timeout' => 0.01, /** @see spawn_cron() */
-				'sslverify' => false,
-				'body' => array(
-					'action' => self::$wp_ajax_action,
-					'token' => md5(
-						defined('NONCE_SALT') ? NONCE_SALT : self::backups()->manifest->get_version()
+		/**
+		 * @since 2.0.23
+		 */
+		if (defined('WP_CLI')) {
+			static $is_wp_cli_executing = false;
+			if ($is_wp_cli_executing) {
+				return false;
+			}
+
+			$is_wp_cli_executing = true;
+			while ($this->execute_pending_task());
+			$is_wp_cli_executing = false;
+
+			return true;
+		} else {
+			$http = new WP_Http();
+			$http->post(
+				site_url( 'wp-admin/admin-ajax.php' ),
+				array(
+					/**
+					 * The request should start (in background) and current request should (continue and) stop
+					 * without stopping the started background request execution
+					 */
+					'blocking'  => false,
+					'timeout'   => 0.01,
+					/** @see spawn_cron() */
+					'sslverify' => false,
+					'body'      => array(
+						'action'            => self::$wp_ajax_action,
+						'token'             => md5(
+							defined( 'NONCE_SALT' ) ? NONCE_SALT : self::backups()->manifest->get_version()
+						),
+						'active_tasks_hash' => ( $collection = $this->get_active_task_collection() )
+							? md5( serialize( $collection ) ) : ''
 					),
-					'active_tasks_hash' => ($collection = $this->get_active_task_collection())
-						? md5(serialize($collection)) : ''
-				),
-			)
-		);
+				)
+			);
+		}
 
 		return true;
 	}
