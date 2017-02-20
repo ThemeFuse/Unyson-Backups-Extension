@@ -659,8 +659,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			unset($filter_data);
 		}
 
-		$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
-
 		$max_time = time() + fw_ext( 'backups' )->get_timeout(-$this->get_timeout_padding());
 
 		while ( time() < $max_time ) {
@@ -702,7 +700,30 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							);
 						}
 
-						{
+						if (
+							($wpdb->get_col($wpdb->prepare(
+								'SHOW TABLES LIKE %s', $wpdb->prefix . $line['data']['name']
+							)))
+							&&
+							($sql = $wpdb->get_col(
+								'SHOW CREATE TABLE '. esc_sql($wpdb->prefix . $line['data']['name']), 1
+							))
+							&&
+							($sql = array_pop($sql))
+						) { // Preserve table structure https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/41
+							$sql = str_replace(
+								'CREATE TABLE `'. esc_sql($wpdb->prefix . $line['data']['name']) .'`',
+								'CREATE TABLE `'. esc_sql($tmp_table_name) .'`',
+								$sql
+							);
+
+							// Use imported table's auto_increment
+							if (preg_match(         '/( AUTO_INCREMENT=)(\d+)/', $line['data']['opts'], $matches)) {
+								$sql = preg_replace('/( AUTO_INCREMENT=)(\d+)/', ' AUTO_INCREMENT='. $matches[2], $sql);
+							}
+						} else {
+							$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
+
 							$sql = 'CREATE TABLE `' . esc_sql( $tmp_table_name ) . "` (\n";
 
 							{
