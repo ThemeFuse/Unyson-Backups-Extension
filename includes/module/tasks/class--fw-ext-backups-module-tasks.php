@@ -773,7 +773,11 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 		$this->set_pending_task_collections($collections);
 
-		file_put_contents($this->get_executed_tasks_path(), '');
+		/**
+		 * This happens when previous execution failed on one of the first tasks
+		 * and now they are blocked to be executed again
+		 */
+		file_put_contents( $this->get_executed_tasks_path(), '' );
 
 		$this->request_next_step_execution();
 	}
