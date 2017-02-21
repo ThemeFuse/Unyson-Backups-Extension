@@ -718,8 +718,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							);
 
 							// Use imported table's auto_increment
-							if (preg_match(         '/( AUTO_INCREMENT=)(\d+)/', $line['data']['opts'], $matches)) {
-								$sql = preg_replace('/( AUTO_INCREMENT=)(\d+)/', ' AUTO_INCREMENT='. $matches[2], $sql);
+							if (preg_match(         '/ AUTO_INCREMENT=(\d+)/', $line['data']['opts'], $matches)) {
+								$sql = preg_replace('/ AUTO_INCREMENT=\d+/', ' AUTO_INCREMENT='. $matches[1], $sql);
 							}
 						} else {
 							$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
