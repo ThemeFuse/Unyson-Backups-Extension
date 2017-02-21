@@ -136,8 +136,9 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 
 	/**
 	 * @return FW_Ext_Backups_Demo[]
+	 * @since 2.0.23
 	 */
-	private function get_demos() {
+	public function get_demos() {
 		if (is_null(self::$demos)) {
 			$demos = array();
 
@@ -399,7 +400,11 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 		}
 	}
 
-	private function do_install(FW_Ext_Backups_Demo $demo) {
+	/**
+	 * @param FW_Ext_Backups_Demo $demo
+	 * @since 2.0.23
+	 */
+	public function do_install(FW_Ext_Backups_Demo $demo) {
 		$tmp_dir = self::backups()->get_tmp_dir();
 		$id_prefix = 'demo:';
 
