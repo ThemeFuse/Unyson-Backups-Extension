@@ -773,6 +773,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 		$this->set_pending_task_collections($collections);
 
+		file_put_contents($this->get_executed_tasks_path(), '');
+
 		$this->request_next_step_execution();
 	}
 
