@@ -323,8 +323,12 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 			if ( $task->result_is_finished() ) {
 				if ( $task->result_is_fail() ) {
-					do_action( 'fw:ext:backups:tasks:fail:id:'. $collection->get_id(), $collection );
-					do_action( 'fw:ext:backups:tasks:fail', $collection );
+					do_action( 'fw:ext:backups:tasks:fail:id:'. $collection->get_id(), $collection,
+						/** @since 2.0.23 */
+						$task );
+					do_action( 'fw:ext:backups:tasks:fail', $collection,
+						/** @since 2.0.23 */
+						$task );
 					break;
 				}
 			} else { // Stop on first executing (not finished) task
@@ -336,15 +340,18 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		if ($finished) {
 			$this->set_active_task_collection(null);
 
+			// Allow the tasks to be executed again
+			file_put_contents( $this->get_executed_tasks_path(), '' );
+
+			do_action('fw:ext:backups:tasks:finish:id:'. $collection->get_id(), $collection);
+			do_action('fw:ext:backups:tasks:finish', $collection);
+
 			if (isset($task) && $task->result_is_fail()) {
 				// if last task is fail, then the collection was failed and foreach stopped
 			} else {
 				do_action('fw:ext:backups:tasks:success:id:'. $collection->get_id(), $collection);
 				do_action('fw:ext:backups:tasks:success', $collection);
 			}
-
-			do_action('fw:ext:backups:tasks:finish:id:'. $collection->get_id(), $collection);
-			do_action('fw:ext:backups:tasks:finish', $collection);
 
 			return null;
 		}
@@ -595,19 +602,19 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 
 		$this->set_active_task_collection($collection);
 
+		do_action( 'fw:ext:backups:task:executed', $task);
+
 		if ($task->result_is_finished()) {
+			do_action( 'fw:ext:backups:task:executed:finished', $task );
+
 			if ($task->result_is_fail()) {
 				$this->do_task_fail_action($task);
 			} else {
 				do_action( 'fw:ext:backups:task:success', $task );
 			}
-
-			do_action( 'fw:ext:backups:task:executed:finished', $task );
 		} else {
 			do_action( 'fw:ext:backups:task:executed:unfinished', $task );
 		}
-
-		do_action( 'fw:ext:backups:task:executed', $task);
 
 		$this->request_next_step_execution();
 
@@ -772,12 +779,6 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		$collections[] = $collection;
 
 		$this->set_pending_task_collections($collections);
-
-		/**
-		 * This happens when previous execution failed on one of the first tasks
-		 * and now they are blocked to be executed again
-		 */
-		file_put_contents( $this->get_executed_tasks_path(), '' );
 
 		$this->request_next_step_execution();
 	}
