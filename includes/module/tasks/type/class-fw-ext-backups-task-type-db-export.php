@@ -320,6 +320,11 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 			asort( $tables );
 
 			$this->tables = array_fill_keys( $tables, array() );
+
+			if (!$is_full) {
+				/** @since 2.0.24 */
+				$this->tables = apply_filters( 'fw:ext:backups:db-export:tables', $this->tables );
+			}
 		}
 
 		if ($is_full) {
