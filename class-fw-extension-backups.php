@@ -652,7 +652,7 @@ class FW_Extension_Backups extends FW_Extension {
 
 				while (!feof($f)) {
 					echo fread($f, $output_buffer_size);
-					ob_flush();
+					if (ob_get_level()) { ob_flush(); }
 					flush();
 				}
 			}
