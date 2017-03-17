@@ -78,4 +78,7 @@ $cfg['schedule.hour'] = 3;
  */
 $cfg['max_timeout'] = 60 * 10;
 
+/**
+ * Destination directory for backups archives
+ */
 $cfg['dirs.destination'] = fw_callback( 'fw_ext_backups_destination_directory' );
