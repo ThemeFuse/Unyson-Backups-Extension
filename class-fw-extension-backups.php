@@ -548,19 +548,7 @@ class FW_Extension_Backups extends FW_Extension {
 	 * @return string
 	 */
 	public function get_backups_dir() {
-		$cache_key = $this->get_cache_key('/dir');
-
-		try {
-			return FW_Cache::get($cache_key);
-		} catch (FW_Cache_Not_Found_Exception $e) {
-			$uploads = wp_upload_dir();
-
-			$dir = fw_fix_path( $uploads['basedir'] ) . '/fw-backup';
-
-			FW_Cache::set($cache_key, $dir);
-
-			return $dir;
-		}
+		return $this->get_config( 'dirs.destination' );
 	}
 
 	/**

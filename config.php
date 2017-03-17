@@ -77,3 +77,5 @@ $cfg['schedule.hour'] = 3;
  * will use this value to try to increase php's default timeout
  */
 $cfg['max_timeout'] = 60 * 10;
+
+$cfg['dirs.destination'] = fw_callback( 'fw_ext_backups_destination_directory' );

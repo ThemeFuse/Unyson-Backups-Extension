@@ -299,3 +299,9 @@ function fw_ext_backups_unzip_partial($zip, $destination_dir, $last_entry = '', 
 
 	return $result;
 }
+
+function fw_ext_backups_destination_directory() {
+	$uploads = wp_upload_dir();
+
+	return fw_fix_path( $uploads['basedir'] ) . '/fw-backup';
+}

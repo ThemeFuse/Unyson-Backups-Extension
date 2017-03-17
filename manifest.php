@@ -19,7 +19,7 @@ $manifest['display'] = true;
 $manifest['standalone'] = true;
 $manifest['requirements'] = array(
 	'framework' => array(
-		'min_version' => '2.4.10',
+		'min_version' => '2.6.16',
 	),
 );
 
