@@ -711,9 +711,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							&&
 							($sql = array_pop($sql))
 						) { // Preserve table structure https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/41
-							$sql = str_replace(
-								'CREATE TABLE `'. esc_sql($wpdb->prefix . $line['data']['name']) .'`',
-								'CREATE TABLE `'. esc_sql($tmp_table_name) .'`',
+							$sql = preg_replace(
+								'/CREATE TABLE `' . esc_sql( $wpdb->prefix . $line['data']['name'] ) . '`/i',
+								'CREATE TABLE `' . esc_sql( $tmp_table_name ) . '`',
 								$sql
 							);
 
