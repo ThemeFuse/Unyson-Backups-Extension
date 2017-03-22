@@ -1,8 +1,18 @@
 <?php
 
-namespace Unyson\Extension;
+namespace Unyson\Extension\Backups;
 
 
-class FW_Backups_Command extends Command {
+class Command extends \Unyson\Extension\Command {
 
+	/**
+	 * @return \FW_Extension_Backups
+	 */
+	protected function get_ext() {
+		return fw_ext( 'backups' );
+	}
+
+	public function test() {
+		echo "test\n";
+	}
 }
