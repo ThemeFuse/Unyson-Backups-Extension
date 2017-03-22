@@ -173,11 +173,11 @@ function fw_ext_backups_copy_dir_recursive($source_dir, $destination_dir) {
 function fw_ext_backups_current_user_can_full() {
 	if ( is_multisite() ) {
 		return is_main_site() &&
-		       current_user_can( 'manage_network_plugins' ) &&
-		       current_user_can( 'manage_network_themes' );
+		       fw_current_user_can( array( 'manage_network_plugins' ), false ) &&
+		       fw_current_user_can( array( 'manage_network_themes' ), false );
 	} else {
-		return current_user_can( 'install_plugins' ) &&
-		       current_user_can( 'install_themes' );
+		return fw_current_user_can( array( 'install_plugins' ), false ) &&
+		       fw_current_user_can( array( 'install_themes' ), false );
 	}
 }
 
