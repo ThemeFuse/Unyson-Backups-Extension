@@ -640,7 +640,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		/**
 		 * @since 2.0.23
 		 */
-		if (defined('WP_CLI')) {
+		if ( fw_is_cli() ) {
 			static $is_wp_cli_executing = false;
 			if ($is_wp_cli_executing) {
 				return false;
