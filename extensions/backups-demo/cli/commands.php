@@ -3,6 +3,11 @@
 namespace Unyson\Extension\BackupsDemo;
 
 
+/**
+ * Unyson Backups Demo Extension CLI Commands.
+ *
+ * @package wp-cli
+ */
 class Command extends \Unyson\Extension\Command {
 
 	/**
@@ -12,7 +17,7 @@ class Command extends \Unyson\Extension\Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Install demo
+	 *     # List all available demos.
 	 *     $ wp unyson ext backups-demo list
 	 *      +---------------+----------------+------------------------------------------+
 	 *		| Id            | Name           | Preview                                  |
