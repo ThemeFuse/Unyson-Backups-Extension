@@ -114,6 +114,8 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				$file->isDir() // Skip directories (they will be created automatically)
 				||
 				$file_path === $state['zip_path'] // this happens when zip exists from previous step
+				||
+				preg_match("|^".$args['destination_dir']."/.+\\.zip\$", $file_path) // this happens when it's a old backup zip
 			) {
 				continue;
 			}
