@@ -52,9 +52,10 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			if ($state['total_images'] = $wpdb->get_col(
 				$wpdb->prepare(
 					"SELECT COUNT(1) as total_images FROM {$wpdb->posts}"
-					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s"
+					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND post_mime_type NOT LIKE %s"
 					." LIMIT 1",
-					$wpdb->esc_like( 'image/' ) . '%'
+					$wpdb->esc_like( 'image/' ) . '%',
+					$wpdb->esc_like( 'image/svg' ) . '%'
 				),
 				0
 			)) {
@@ -79,10 +80,12 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			if ( $attachment_id = $wpdb->get_col(
 				$wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts}"
-					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d"
+					." WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND post_mime_type NOT LIKE %s AND ID > %d"
 					." ORDER BY ID"
 					." LIMIT 1",
-					$wpdb->esc_like( 'image/' ) . '%', $state['attachment_id']
+					$wpdb->esc_like( 'image/' ) . '%',
+					$wpdb->esc_like( 'image/svg' ) . '%',
+					$state['attachment_id']
 				),
 				0
 			) ) {
