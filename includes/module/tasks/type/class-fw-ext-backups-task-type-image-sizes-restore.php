@@ -32,6 +32,11 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 		/** @var WPDB $wpdb */
 		global $wpdb;
 
+		$args = array_merge(
+			array('remove_old_files' => false),
+			$args
+		);
+
 		if ( empty( $state ) ) {
 			$state = array(
 				// The attachment at which the execution stopped and will continue in next request
@@ -86,6 +91,19 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 				return true;
 			}
 
+			if (
+				isset($args['remove_old_files'])
+				&&
+				$args['remove_old_files']
+				&&
+				// Only remove when we start to process a single attachment
+				empty($state['processed_sizes'])
+			) {
+				$this->_remove_images_without_sizes_for_attachment(
+					$attachment_id
+				);
+			}
+
 			if ( $file_exists = file_exists( $file = get_attached_file( $attachment_id ) ) ) {
 				if (empty($state['pending_sizes'])) {
 					$state['pending_sizes'] = get_intermediate_image_sizes();
@@ -114,6 +132,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 			}
 
 			if (empty($state['pending_sizes']) || !$file_exists) { // Proceed to next attachment
+
 				$state['attachment_id'] = $attachment_id;
 				$state['processed_sizes'] = $state['pending_sizes'] = array();
 				++$state['processed_images'];
@@ -124,6 +143,32 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 	}
 
 	private $current_size = '';
+
+	/**
+	 * Very similar to the wp-cli implementation
+	 * https://github.com/wp-cli/media-command/blob/e5574686c01de22ef294efc57f71dc05bd7c162e/src/Media_Command.php#L530-L555
+	 */
+	public function _remove_images_without_sizes_for_attachment($attachment_id) {
+		$metadata = wp_get_attachment_metadata( $attachment_id );
+
+		if ( empty( $metadata['sizes'] ) ) {
+			return;
+		}
+
+		$fullsizepath = get_attached_file($attachment_id);
+
+		$dir_path = dirname( $fullsizepath ) . '/';
+
+		foreach ( $metadata['sizes'] as $size_info ) {
+			$intermediate_path = $dir_path . $size_info['file'];
+
+			if ( $intermediate_path === $fullsizepath )
+				continue;
+
+			if ( file_exists( $intermediate_path ) )
+				@unlink( $intermediate_path );
+		}
+	}
 
 	/**
 	 * Leave only one image size so it will be generated fast and will prevent timeout
