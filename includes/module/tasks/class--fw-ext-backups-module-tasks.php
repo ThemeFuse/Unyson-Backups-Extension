@@ -996,11 +996,6 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 		);
 	}
 
-	public function do_forced_cancel_unfiltered() {
-		$this->set_active_task_collection(null);
-		file_put_contents($this->get_executed_tasks_path(), '');
-	}
-
 	public function do_cancel() {
 		if (!(
 			($collection = $this->get_active_task_collection())
