@@ -1001,6 +1001,8 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			($collection = $this->get_active_task_collection())
 			&&
 			$collection->is_cancelable()
+			&&
+			! $collection->get_is_cancelable_right_away()
 		)) {
 			return false;
 		} else {
