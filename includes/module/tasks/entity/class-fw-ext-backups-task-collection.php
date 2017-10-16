@@ -3,7 +3,7 @@
 /**
  * @since 2.0.0
  */
-final class FW_Ext_Backups_Task_Collection {
+class FW_Ext_Backups_Task_Collection {
 	/**
 	 * @var string
 	 * @since 2.0.0
