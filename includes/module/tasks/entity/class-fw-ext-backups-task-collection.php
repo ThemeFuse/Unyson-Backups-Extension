@@ -23,12 +23,6 @@ final class FW_Ext_Backups_Task_Collection {
 	private $tasks = array();
 
 	/**
-	 * @var boolean
-	 * @since 2.0.25
-	 */
-	private $is_cancelable_right_away = false;
-
-	/**
 	 * @param string $id
 	 */
 	public function __construct($id = null) {
@@ -80,20 +74,6 @@ final class FW_Ext_Backups_Task_Collection {
 	}
 
 	/**
-	 * @since 2.0.25
-	 */
-	public function set_is_cancelable_right_away($value = true) {
-		$this->is_cancelable_right_away = $value;
-	}
-
-	/**
-	 * @since 2.0.25
-	 */
-	public function get_is_cancelable_right_away() {
-		return $this->is_cancelable_right_away;
-	}
-
-	/**
 	 * @return FW_Ext_Backups_Task[]
 	 * @since 2.0.0
 	 */
@@ -142,10 +122,6 @@ final class FW_Ext_Backups_Task_Collection {
 	 * @return bool
 	 */
 	public function is_cancelable() {
-		if ($this->is_cancelable_right_away) {
-			return true;
-		}
-
 		$tasks = $this->get_tasks();
 
 		if (
@@ -186,7 +162,6 @@ final class FW_Ext_Backups_Task_Collection {
 
 		return array(
 			'id' => $this->get_id(),
-			'is_cancelable_right_away' => $this->get_is_cancelable_right_away(),
 			'title' => $this->title,
 			'tasks' => $tasks,
 		);
@@ -207,12 +182,6 @@ final class FW_Ext_Backups_Task_Collection {
 
 		if (isset($c['title'])) {
 			$collection->set_title($c['title']);
-		}
-
-		if (isset($c['is_cancelable_right_away'])) {
-			$collection->set_is_cancelable_right_away(
-				$c['is_cancelable_right_away']
-			);
 		}
 
 		foreach ($c['tasks'] as $t) {
