@@ -1,5 +1,9 @@
 #fw-ext-backups-demo-list .theme .theme-actions {
 	opacity: 1;
+	top: auto;
+	bottom: 0;
+	-webkit-transform: translateY(0);
+	transform: translateY(0);
 }
 
 #fw-ext-backups-demo-list .theme a.more-details {
