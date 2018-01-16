@@ -139,6 +139,13 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	protected function _init() {
+		
+		if ( is_admin() && isset( $_SERVER['SERVER_SOFTWARE'] ) && strpos( $_SERVER['SERVER_SOFTWARE'], 'LiteSpeed' ) !== false ) {
+			if ( ! is_file( ABSPATH . '.htaccess' ) || ! preg_match( '/noabort/i', file_get_contents( ABSPATH . '.htaccess' ) ) ) {
+				add_action( 'admin_notices', array( $this, '_action_admin_notices_litespeed' ) );
+			}
+		}
+
 		{
 			if (!$this->is_disabled()) {
 				add_action('admin_menu', array($this, '_action_admin_menu'));
@@ -173,6 +180,19 @@ class FW_Extension_Backups extends FW_Extension {
 		}
 
 		require_once $dir .'/includes/log/init.php';
+	}
+
+	public function _action_admin_notices_litespeed() {
+		echo
+			'<div class="notice notice-warning">
+				<p><strong>Unyson: </strong>' .
+					sprintf(
+						esc_html__( 'Your website is hosted using the LiteSpeed web server. Please consult this %sarticle%s if you have problems backing up.', 'fw' ),
+						'<a href="/">',
+						'</a>'
+					) .
+				'</p>
+			</div>';
 	}
 
 	/**
