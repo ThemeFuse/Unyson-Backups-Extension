@@ -139,7 +139,7 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	protected function _init() {
-		
+
 		if ( is_admin() && isset( $_SERVER['SERVER_SOFTWARE'] ) && strpos( $_SERVER['SERVER_SOFTWARE'], 'LiteSpeed' ) !== false ) {
 			if ( ! is_file( ABSPATH . '.htaccess' ) || ! preg_match( '/noabort/i', file_get_contents( ABSPATH . '.htaccess' ) ) ) {
 				add_action( 'admin_notices', array( $this, '_action_admin_notices_litespeed' ) );
@@ -188,7 +188,7 @@ class FW_Extension_Backups extends FW_Extension {
 				<p><strong>Unyson: </strong>' .
 					sprintf(
 						esc_html__( 'Your website is hosted using the LiteSpeed web server. Please consult this %sarticle%s if you have problems backing up.', 'fw' ),
-						'<a href="/">',
+						'<a href="http://manual.unyson.io/en/latest/extension/backups/index.html#litespeed-webserver" target="_blank">',
 						'</a>'
 					) .
 				'</p>
