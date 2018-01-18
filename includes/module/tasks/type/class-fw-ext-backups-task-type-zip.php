@@ -127,17 +127,8 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 
 			$zip->addFile($file_path, $file_zip_path);
 
-			if ($set_compression_is_available) {
-				$zip->setCompressionName(
-					$file_zip_path,
-					/**
-					 * The Store method does not compress the file
-					 * on slow servers this will be a huge speed improvement
-					 * (of course by sacrificing the zip file size)
-					 * http://php.net/manual/en/zip.constants.php#ziparchive.constants.cm-store
-					 */
-					ZipArchive::CM_STORE
-				);
+			if ( $set_compression_is_available ) {
+				$zip->setCompressionName( $file_zip_path, apply_filters( 'fw_backup_compression_method', ZipArchive::CM_DEFAULT ) );
 			}
 		}
 
