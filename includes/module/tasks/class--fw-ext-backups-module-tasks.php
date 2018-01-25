@@ -351,7 +351,10 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 			} else {
 				do_action('fw:ext:backups:tasks:success:id:'. $collection->get_id(), $collection);
 				do_action('fw:ext:backups:tasks:success', $collection);
+
 			}
+
+			flush_rewrite_rules();
 
 			return null;
 		}
