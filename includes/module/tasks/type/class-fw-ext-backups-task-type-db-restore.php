@@ -700,66 +700,40 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							);
 						}
 
-						if (
-							($wpdb->get_col($wpdb->prepare(
-								'SHOW TABLES LIKE %s', $wpdb->prefix . $line['data']['name']
-							)))
-							&&
-							($sql = $wpdb->get_col(
-								'SHOW CREATE TABLE '. esc_sql($wpdb->prefix . $line['data']['name']), 1
-							))
-							&&
-							($sql = array_pop($sql))
-						) { // Preserve table structure https://github.com/ThemeFuse/Unyson-Backups-Extension/issues/41
-							$sql = preg_replace(
-								'/CREATE TABLE `' . esc_sql( $wpdb->prefix . $line['data']['name'] ) . '`/i',
-								'CREATE TABLE `' . esc_sql( $tmp_table_name ) . '`',
-								$sql
-							);
+						$sql = 'CREATE TABLE `' . esc_sql( $tmp_table_name ) . "` (\n";
 
-							// Use imported table's auto_increment
-							if (preg_match(         '/ AUTO_INCREMENT=(\d+)/', $line['data']['opts'], $matches)) {
-								$sql = preg_replace('/ AUTO_INCREMENT=\d+/', ' AUTO_INCREMENT='. $matches[1], $sql);
-							}
-						} else {
-							$utf8mb4_is_supported = ( defined( 'DB_CHARSET' ) && DB_CHARSET === 'utf8mb4' );
+						$cols_sql = array();
 
-							$sql = 'CREATE TABLE `' . esc_sql( $tmp_table_name ) . "` (\n";
+						foreach ( $line['data']['columns'] as $col_name => $col_opts ) {
+							$cols_sql[] = '`'. esc_sql( $col_name ) .'` '. $col_opts;
+						}
 
-							{
-								$cols_sql = array();
+						foreach ( $line['data']['indexes'] as $index ) {
+							$cols_sql[] = $index;
+						}
 
-								foreach ( $line['data']['columns'] as $col_name => $col_opts ) {
-									$cols_sql[] = '`'. esc_sql( $col_name ) .'` '. (
-										$utf8mb4_is_supported
-											? $col_opts
-											: str_replace( 'utf8mb4', 'utf8', $col_opts )
-										);
-								}
+						$sql .= implode( ", \n", $cols_sql );
 
-								foreach ( $line['data']['indexes'] as $index ) {
-									$cols_sql[] = $index;
-								}
+						unset( $cols_sql );
 
-								$sql .= implode( ", \n", $cols_sql );
+						// fallback to MyISAM if InnoDB is not supported
+						// https://github.com/ThemeFuse/Unyson/issues/2175
+						if ( ! $this->engine_is_supported( 'InnoDB' ) ) {
+							$line['data']['opts'] = str_replace( 'InnoDB', 'MyISAM', $line['data']['opts'] );
+						}
 
-								unset( $cols_sql );
-							}
+						$sql .= ') ' . $line['data']['opts'];
 
-							// $line['data']['opts']
-							{
-								if (!$this->engine_is_supported('InnoDB')) {
-									// fallback to MyISAM if InnoDB is not supported
-									// https://github.com/ThemeFuse/Unyson/issues/2175
-									$line['data']['opts'] = str_replace('InnoDB', 'MyISAM', $line['data']['opts']);
-								}
+						$collations = wp_list_pluck( $wpdb->get_results( 'SHOW COLLATION' ), 'Charset', 'Collation' );
+						$collate = preg_match( '/(COLLATE=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
+						$charset = preg_match( '/(CHARSET=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
 
-								if (!$utf8mb4_is_supported) {
-									$line['data']['opts'] = str_replace( 'utf8mb4', 'utf8', $line['data']['opts'] );
-								}
+						if ( ! isset( $collations[ $collate ] ) ) {
+							$sql = str_replace( $collate, 'utf8_general_ci', $sql );
+						}
 
-								$sql .= ') ' . $line['data']['opts'];
-							}
+						if ( ! array_search( $charset, $collations ) ) {
+							$sql = str_replace( $charset, 'utf8', $sql );
 						}
 
 						if ( false === $wpdb->query( $sql ) ) {
