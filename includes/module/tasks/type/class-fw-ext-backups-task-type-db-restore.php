@@ -728,12 +728,8 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						$collate = preg_match( '/(COLLATE=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
 						$charset = preg_match( '/(CHARSET=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
 
-						if ( ! isset( $collations[ $collate ] ) ) {
-							$sql = str_replace( $collate, 'utf8_general_ci', $sql );
-						}
-
-						if ( ! array_search( $charset, $collations ) ) {
-							$sql = str_replace( $charset, 'utf8', $sql );
+						if ( ! isset( $collations[ $collate ] ) || ! array_search( $charset, $collations ) ) {
+							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
 						}
 
 						if ( false === $wpdb->query( $sql ) ) {
