@@ -183,6 +183,13 @@ class FW_Extension_Backups extends FW_Extension {
 	}
 
 	public function _action_admin_notices_litespeed() {
+
+		$screen = get_current_screen();
+
+		if ( ! $this->is_backups_page() && 'tools_page_fw-backups-demo-content' !== $screen->id ) {
+			return;
+		}
+
 		echo
 			'<div class="notice notice-warning">
 				<p><strong>Unyson: </strong>' .
@@ -228,10 +235,7 @@ class FW_Extension_Backups extends FW_Extension {
 		} catch (FW_Cache_Not_Found_Exception $e) {
 			$is = false;
 
-			foreach (array(
-				'_page_'. $this->get_page_slug(),
-				'_page_'. $this->get_page_slug() .'-network',
-			) as $suffix) {
+			foreach (array( '_page_'. $this->get_page_slug(), '_page_'. $this->get_page_slug() .'-network' ) as $suffix) {
 				if (substr($current_screen->id, -strlen($suffix)) === $suffix) {
 					$is = true;
 					break;
