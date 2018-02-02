@@ -44,29 +44,50 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	}
 
 	/**
-	 * @param string $engine
-	 * @return bool
+	 * @return string
 	 * @since 2.0.20
 	 */
-	private function engine_is_supported($engine) {
+	private function get_db_engine() {
 		try {
-			$engines = FW_Cache::get($cache_key = 'fw:ext:backups:db-engines');
-		} catch (FW_Cache_Not_Found_Exception $e) {
+			$engine = FW_Cache::get( $cache_key = 'fw:ext:backups:db-engine' );
+		} catch ( FW_Cache_Not_Found_Exception $e ) {
 			/** @var wpdb $wpdb */
 			global $wpdb;
 
-			$engines = array();
+			$engine = $wpdb->get_var( "SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA='" . DB_NAME . "' AND TABLE_NAME='{$wpdb->prefix}options'" );
 
-			if ($list = $wpdb->get_results('SHOW ENGINES', ARRAY_A)) {
-				foreach ($list as $item) {
-					$engines[ $item['Engine'] ] = in_array($item['Support'], array('YES', 'DEFAULT'), true);
-				}
-			}
-
-			FW_Cache::set($cache_key, $engines);
+			FW_Cache::set( $cache_key, $engine );
 		}
 
-		return isset($engines[$engine]) && $engines[$engine];
+		return $engine;
+	}
+
+	/**
+	 * @return array
+	 */
+	private function get_db_collations() {
+		try {
+			$collations = FW_Cache::get( $cache_key = 'fw:ext:backups:db-collations' );
+		} catch ( FW_Cache_Not_Found_Exception $e ) {
+			/** @var wpdb $wpdb */
+			global $wpdb;
+
+			$collations = wp_list_pluck( $wpdb->get_results( 'SHOW COLLATION' ), 'Charset', 'Collation' );
+
+			FW_Cache::set( $cache_key, $collations );
+		}
+
+		return $collations;
+	}
+
+	/**
+	 * @param $sql
+	 * @param $field
+	 *
+	 * @return string
+	 */
+	private function get_db_field( $sql, $field ) {
+		return preg_match( "/({$field}=)([^\s]+)/i", $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
 	}
 
 	/**
@@ -716,17 +737,15 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 						unset( $cols_sql );
 
-						// fallback to MyISAM if InnoDB is not supported
-						// https://github.com/ThemeFuse/Unyson/issues/2175
-						if ( ! $this->engine_is_supported( 'InnoDB' ) ) {
-							$line['data']['opts'] = str_replace( 'InnoDB', 'MyISAM', $line['data']['opts'] );
-						}
-
 						$sql .= ') ' . $line['data']['opts'];
 
-						$collations = wp_list_pluck( $wpdb->get_results( 'SHOW COLLATION' ), 'Charset', 'Collation' );
-						$collate = preg_match( '/(COLLATE=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
-						$charset = preg_match( '/(CHARSET=)([^\s]+)/i', $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
+						if ( ( $engine = $this->get_db_engine() ) && is_string( $engine ) ) {
+							$sql = str_replace( $this->get_db_field( $sql, 'ENGINE' ), $engine, $sql );
+						}
+
+						$collations = $this->get_db_collations();
+						$collate    = $this->get_db_field( $sql, 'COLLATE' );
+						$charset    = $this->get_db_field( $sql, 'CHARSET' );
 
 						if ( ! isset( $collations[ $collate ] ) || ! array_search( $charset, $collations ) ) {
 							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
