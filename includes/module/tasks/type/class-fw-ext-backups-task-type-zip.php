@@ -85,27 +85,21 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 
 		/** @var FW_Extension_Backups $ext */
 		$ext = fw_ext('backups');
-		$max_time = time()
-			/**
-			 * Files for zip (in pending) are added very fast
-			 * but on zip close the processing/zipping starts and it is time consuming
-			 * so allocate little time for files add and leave as much time as possible for $zip->close();
-			 *
-			 * TODO: Limit number of files and/or total files size added in zip in one/current step
-			 */
-			+ min(abs($ext->get_timeout() / 2), 10);
-		// $zip->setCompression*() was introduced in PHP 7.0
-		$set_compression_is_available = method_exists($zip, 'setCompressionName');
-		$files_count = 0;
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($args['source_dir']),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
+		/**
+		 * Files for zip (in pending) are added very fast
+		 * but on zip close the processing/zipping starts and it is time consuming
+		 * so allocate little time for files add and leave as much time as possible for $zip->close();
+		 */
+		$max_time                     = time() + min( abs( $ext->get_timeout() / 2 ), 10 );
+		$set_compression_is_available = method_exists( $zip, 'setCompressionName' );
+		$files                        = array_slice( $this->get_all_files( $args['source_dir'] ), $state['files_count'] );
 
 		foreach ($files as $file) {
 			if ($execution_not_finished = (time() > $max_time)) {
 				break;
 			}
+
+			++$state['files_count'];
 
 			$file_path = fw_fix_path($file->getRealPath());
 			$file_zip_path = substr($file_path, strlen($args['source_dir']) + 1); // relative
@@ -120,11 +114,6 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 				continue;
 			}
 
-			if ((++$files_count) < $state['files_count']) {
-				// skip already compressed files in previous step
-				continue;
-			}
-
 			$zip->addFile($file_path, $file_zip_path);
 
 			if ( $set_compression_is_available ) {
@@ -133,23 +122,21 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		}
 
 		// Zip archive will be created only after closing the object
-		if (!$zip->close()) {
+		if ( ! $zip->close() ) {
 			return new WP_Error(
-				'cannot_close_zip', __('Cannot close the zip file', 'fw')
+				'cannot_close_zip', __( 'Cannot close the zip file', 'fw' )
 			);
 		}
 
-		$state['files_count'] = $files_count;
-
-		if ($execution_not_finished) {
+		if ( $execution_not_finished ) {
 			// There are more files to be processed, the execution hasn't finished
 			return $state;
 		}
 
-		if (!$files_count) {
-			/**
-			 * Happens on Content Backup when uploads/ is empty
-			 */
+		/**
+		 * Happens on Content Backup when uploads/ is empty
+		 */
+		if ( ! $files ) {
 			return true;
 		}
 
@@ -161,5 +148,22 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		}
 
 		return true;
+	}
+
+	public function get_all_files( $source_dir ) {
+
+		static $all_files = array();
+
+		if ( $all_files ) {
+			return $all_files;
+		}
+		error_log( print_r( 'test', true ) . PHP_EOL, 3, ABSPATH . 'debug.log' );
+		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $source_dir ), RecursiveIteratorIterator::LEAVES_ONLY );
+
+		foreach ( $files as $file ) {
+			$all_files[] = $file;
+		}
+
+		return $all_files;
 	}
 }
