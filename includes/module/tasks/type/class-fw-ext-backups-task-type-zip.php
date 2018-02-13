@@ -157,7 +157,7 @@ class FW_Ext_Backups_Task_Type_Zip extends FW_Ext_Backups_Task_Type {
 		if ( $all_files ) {
 			return $all_files;
 		}
-		error_log( print_r( 'test', true ) . PHP_EOL, 3, ABSPATH . 'debug.log' );
+
 		$files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $source_dir ), RecursiveIteratorIterator::LEAVES_ONLY );
 
 		foreach ( $files as $file ) {
