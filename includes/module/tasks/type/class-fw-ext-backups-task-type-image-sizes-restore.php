@@ -109,7 +109,7 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Restore extends FW_Ext_Backups_Task_T
 
 			if ( $file_exists = file_exists( $file = get_attached_file( $attachment_id ) ) ) {
 				if (empty($state['pending_sizes'])) {
-					$state['pending_sizes'] = apply_filters( 'fw_ext_backups_exclude_img_sizes', get_intermediate_image_sizes() );
+					$state['pending_sizes'] = apply_filters( 'fw_ext_backups_restore_exclude_img_sizes', get_intermediate_image_sizes() );
 					$state['processed_sizes'] = array();
 				}
 
