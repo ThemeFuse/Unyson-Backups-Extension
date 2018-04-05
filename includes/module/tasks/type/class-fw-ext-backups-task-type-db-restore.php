@@ -962,11 +962,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 										 * so it looses some data, especially if it contains trailing `0x...000`
 										 * Fixes https://github.com/ThemeFuse/Unyson/issues/1952
 										 */
-										(
-											strpos($wpdb->last_error, 'Duplicate') !== false
-											&&
-											strpos($wpdb->last_error, '\\x00') !== false
-										)
+										strpos( $wpdb->last_error, 'Duplicate' ) !== false
 									) {
 										break;
 									} else {
@@ -998,7 +994,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 							if ( false === $wpdb->query( $sql ) ) {
 								$fo = null;
-
 								return new WP_Error(
 									'insert_fail',
 									sprintf(
