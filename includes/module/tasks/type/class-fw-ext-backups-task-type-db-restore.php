@@ -747,7 +747,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						$collate    = $this->get_db_field( $sql, 'COLLATE' );
 						$charset    = $this->get_db_field( $sql, 'CHARSET' );
 
-						if ( ! isset( $collations[ $collate ] ) || ! array_search( $charset, $collations ) ) {
+						// The sql request can contains wrong table collate e.g: collate = utf8_general_ci, charset = utf8mb4 - but table with collate utf8_general_ci doesn't support charset utf8mb4
+						$is_invalid_charset = isset( $collations[ $collate ] ) && $collations[ $collate ] !== $charset;
+
+						// In case if the db doesn't support imported db collate or charset.
+						$not_exists_charset_collate = ! isset( $collations[ $collate ] ) || ! array_search( $charset, $collations );
+
+						if ( $is_invalid_charset || $not_exists_charset_collate ) {
 							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
 						}
 
