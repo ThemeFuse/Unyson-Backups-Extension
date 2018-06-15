@@ -262,20 +262,20 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	}
 
 	private function do_cleanup(array $args, array $state) {
-		global $wpdb; /** @var WPDB $wpdb */
+		global $wpdb;
 
 		// delete all tables with temporary prefix $this->get_tmp_table_prefix()
-		if ($table_names = $wpdb->get_col($wpdb->prepare(
-			'SHOW TABLES LIKE %s',
-			$wpdb->esc_like($this->get_tmp_table_prefix()) .'%'
-		))) {
+		$table_names = $this->sort_tables( $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $this->get_tmp_table_prefix() ) . '%' ) ), false );
+
+		if ( $table_names ) {
+
 			if (!$wpdb->query('DROP TABLE '. esc_sql(
 				/**
 				 * Delete only one table at once, because some tables can be huge
 				 * and deleting them all at once can exceed timeout limit
 				 */
-				$table_name = array_pop($table_names)
-			))) {
+					$table_name = array_pop($table_names)
+				))) {
 				return new WP_Error(
 					'drop_tmp_table_fail',
 					sprintf(__('Cannot drop temporary table: %s', 'fw'), $table_name)
@@ -757,7 +757,16 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
 						}
 
-						if ( false === $wpdb->query( $sql ) ) {
+						if ( false !== stripos( $sql, 'FOREIGN KEY' ) ) {
+							preg_match("/(?:FOREIGN KEY)(?:\s)?(?:\(`)(\w+?)(?:`\))/i", $sql, $foreign_key );
+							if ( ! empty( $foreign_key[1] ) ) {
+								$this->drop_foreign_key( $foreign_key[1] );
+							}
+						}
+
+						$query = $wpdb->query( $sql );
+
+						if ( false === $query ) {
 							$fo = null;
 
 							return new WP_Error(
@@ -1162,6 +1171,15 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 		if (!empty($rename_sql)) {
 			if (!empty($drop_sql)) {
+
+				$foreigns = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE referenced_table_name IS NOT NULL", ARRAY_A );
+
+				foreach ( $foreigns as $foreign ) {
+					if ( false !== array_search( $foreign['referenced_table_name'], $drop_sql ) ) {
+						$this->drop_foreign_key( $foreign['referenced_column_name'] );
+					}
+				}
+
 				$drop_sql = "DROP TABLE \n". implode(" , \n", $drop_sql);
 
 				if (!$wpdb->query($drop_sql)) {
@@ -1190,5 +1208,51 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		wp_cache_flush();
 
 		return true;
+	}
+
+	public function sort_tables( $tables, $unshift ) {
+		global $wpdb;
+
+		if ( ! $tables || is_wp_error( $tables ) || ! is_array( $tables ) ) {
+			return $tables;
+		}
+
+		$foreigns = $wpdb->get_results( "SELECT * FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS", ARRAY_A );
+
+		foreach ( $foreigns as $foreign ) {
+			if ( false === ( $key = array_search( $foreign['REFERENCED_TABLE_NAME'], $tables ) ) ) {
+				continue;
+			}
+
+			unset( $tables[ $key ] );
+
+			if ( $unshift ) {
+				array_unshift( $tables, $foreign['REFERENCED_TABLE_NAME'] );
+			} else {
+				$tables[] = $foreign['REFERENCED_TABLE_NAME'];
+			}
+		}
+
+		return $tables;
+	}
+
+	function drop_foreign_key( $drop_key ) {
+		global $wpdb;
+
+		if ( ! $drop_key || ! is_string( $drop_key ) ) {
+			return;
+		}
+
+		$keys = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE referenced_table_name IS NOT NULL", ARRAY_A );
+
+		if ( ! $keys ) {
+			return;
+		}
+
+		foreach ( $keys as $key ) {
+			if ( $key['column_name'] === $drop_key ) {
+				$wpdb->query( "ALTER TABLE {$key['table_name']} DROP FOREIGN KEY {$key['constraint_name']}" );
+			}
+		}
 	}
 }
