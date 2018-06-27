@@ -156,7 +156,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				__('PHP class SplFileObject is required but not available. Please contact your hosting', 'fw')
 			);
 		}
-		error_log( $state['task'] . PHP_EOL, 3, ABSPATH . 'debug.log' );
+
 		if ($state['task'] === 'cleanup') {
 			return $this->do_cleanup($args, $state);
 		} elseif ($state['task'] === 'inspect') {
