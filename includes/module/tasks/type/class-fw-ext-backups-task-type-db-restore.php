@@ -128,11 +128,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 				$state = array(
 					'task' => 'cleanup',
-						// cleanup - delete all temporary tables
-						// inspect - search and collect params (for e.g. `siteurl` and `home` wp options)
-						// import - import data from file to db (at the same time, replace in rows old url with new)
-						// keep:options - replace some imported rows with current values (prevent overwrite)
-						// replace - replace original tables with imported temporary tables
+					// cleanup - delete all temporary tables
+					// inspect - search and collect params (for e.g. `siteurl` and `home` wp options)
+					// import - import data from file to db (at the same time, replace in rows old url with new)
+					// keep:options - replace some imported rows with current values (prevent overwrite)
+					// replace - replace original tables with imported temporary tables
 					'step' => 0, // file read position (line) or other state (depending on task)
 
 					/**
@@ -156,7 +156,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 				__('PHP class SplFileObject is required but not available. Please contact your hosting', 'fw')
 			);
 		}
-
+		error_log( $state['task'] . PHP_EOL, 3, ABSPATH . 'debug.log' );
 		if ($state['task'] === 'cleanup') {
 			return $this->do_cleanup($args, $state);
 		} elseif ($state['task'] === 'inspect') {
@@ -242,7 +242,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 			$unserialized = (
 				gettype($_subject) !== gettype($subject)
 				||
-			    $_subject !== $subject
+				$_subject !== $subject
 			);
 
 			if (is_string($_subject)) {
@@ -265,7 +265,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		global $wpdb;
 
 		// delete all tables with temporary prefix $this->get_tmp_table_prefix()
-		$table_names = $this->sort_tables( $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $this->get_tmp_table_prefix() ) . '%' ) ), false );
+		$table_names = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $this->get_tmp_table_prefix() ) . '%' ) );
 
 		if ( $table_names ) {
 
@@ -512,7 +512,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$wp_upload_dir = wp_upload_dir();
 
 					$search_replace[
-						rtrim($state['params']['wp_upload_dir_baseurl'], '/')
+					rtrim($state['params']['wp_upload_dir_baseurl'], '/')
 					] = rtrim($wp_upload_dir['baseurl'], '/');
 
 					unset($wp_upload_dir);
@@ -520,13 +520,13 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 				foreach (array('siteurl', 'home') as $_wp_option) {
 					$search_replace[
-						rtrim($state['params'][$_wp_option], '/')
+					rtrim($state['params'][$_wp_option], '/')
 					] = rtrim(get_option($_wp_option), '/');
 				}
 
 				foreach ($search_replace as $search => $replace) {
 					$search_replace[
-						($old_url = fw_get_url_without_scheme($search))
+					($old_url = fw_get_url_without_scheme($search))
 					] = ($new_url = fw_get_url_without_scheme($replace));
 
 					/**
@@ -645,7 +645,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$filter_data['stylesheet'] = $state['params']['stylesheet'];
 
 					$replace_option_names[
-						'theme_mods_'. $state['params']['stylesheet']
+					'theme_mods_'. $state['params']['stylesheet']
 					] = 'theme_mods_'. get_stylesheet();
 				}
 
@@ -664,14 +664,14 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					$filter_data['template'] = $state['params']['template'];
 
 					$replace_option_names[
-						'theme_mods_'. $state['params']['template']
+					'theme_mods_'. $state['params']['template']
 					] = 'theme_mods_'. get_template();
 				}
 			}
 
 			if ( ! empty($filter_data) ) {
 				$replace_option_names = array_merge(
-					/** @since 2.0.12 */
+				/** @since 2.0.12 */
 					apply_filters('fw_ext_backups_db_restore_option_names_replace', array(), $filter_data),
 					$replace_option_names
 				);
@@ -755,13 +755,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 						if ( $is_invalid_charset || $not_exists_charset_collate ) {
 							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
-						}
-
-						if ( false !== stripos( $sql, 'FOREIGN KEY' ) ) {
-							preg_match("/(?:FOREIGN KEY)(?:\s)?(?:\(`)(\w+?)(?:`\))/i", $sql, $foreign_key );
-							if ( ! empty( $foreign_key[1] ) ) {
-								$this->drop_foreign_key( $foreign_key[1] );
-							}
 						}
 
 						$query = $wpdb->query( $sql );
@@ -1172,11 +1165,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		if (!empty($rename_sql)) {
 			if (!empty($drop_sql)) {
 
-				$foreigns = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE referenced_table_name IS NOT NULL", ARRAY_A );
+				$foreigns = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE TABLE_SCHEMA='{$wpdb->dbname}' AND referenced_table_name IS NOT NULL", ARRAY_A );
 
 				foreach ( $foreigns as $foreign ) {
 					if ( false !== array_search( $foreign['referenced_table_name'], $drop_sql ) ) {
-						$this->drop_foreign_key( $foreign['referenced_column_name'] );
+						$wpdb->query( "ALTER TABLE {$foreign['table_name']} DROP FOREIGN KEY {$foreign['constraint_name']}" );
 					}
 				}
 
@@ -1208,51 +1201,5 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		wp_cache_flush();
 
 		return true;
-	}
-
-	public function sort_tables( $tables, $unshift ) {
-		global $wpdb;
-
-		if ( ! $tables || is_wp_error( $tables ) || ! is_array( $tables ) ) {
-			return $tables;
-		}
-
-		$foreigns = $wpdb->get_results( "SELECT * FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS", ARRAY_A );
-
-		foreach ( $foreigns as $foreign ) {
-			if ( false === ( $key = array_search( $foreign['REFERENCED_TABLE_NAME'], $tables ) ) ) {
-				continue;
-			}
-
-			unset( $tables[ $key ] );
-
-			if ( $unshift ) {
-				array_unshift( $tables, $foreign['REFERENCED_TABLE_NAME'] );
-			} else {
-				$tables[] = $foreign['REFERENCED_TABLE_NAME'];
-			}
-		}
-
-		return $tables;
-	}
-
-	function drop_foreign_key( $drop_key ) {
-		global $wpdb;
-
-		if ( ! $drop_key || ! is_string( $drop_key ) ) {
-			return;
-		}
-
-		$keys = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE referenced_table_name IS NOT NULL", ARRAY_A );
-
-		if ( ! $keys ) {
-			return;
-		}
-
-		foreach ( $keys as $key ) {
-			if ( $key['column_name'] === $drop_key ) {
-				$wpdb->query( "ALTER TABLE {$key['table_name']} DROP FOREIGN KEY {$key['constraint_name']}" );
-			}
-		}
 	}
 }
