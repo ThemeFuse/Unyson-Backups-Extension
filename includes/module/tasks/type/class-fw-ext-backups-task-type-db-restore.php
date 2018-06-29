@@ -264,6 +264,12 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	private function do_cleanup(array $args, array $state) {
 		global $wpdb;
 
+		$foreigns = $wpdb->get_results( "SELECT constraint_name, column_name, referenced_table_name, referenced_column_name, table_name FROM information_schema.key_column_usage WHERE TABLE_SCHEMA='{$wpdb->dbname}' AND referenced_table_name IS NOT NULL", ARRAY_A );
+
+		foreach ( $foreigns as $foreign ) {
+			$wpdb->query( "ALTER TABLE {$foreign['table_name']} DROP FOREIGN KEY {$foreign['constraint_name']}" );
+		}
+
 		// delete all tables with temporary prefix $this->get_tmp_table_prefix()
 		$table_names = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $this->get_tmp_table_prefix() ) . '%' ) );
 
