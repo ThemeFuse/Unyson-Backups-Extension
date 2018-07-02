@@ -87,7 +87,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	 * @return string
 	 */
 	private function get_db_field( $sql, $field ) {
-		return preg_match( "/({$field}=)([^\s]+)/i", $sql, $matches ) && isset( $matches[2] ) ? $matches[2] : '';
+		return preg_match( "/({$field})(=)?(\s)?([^\s\"]+)/i", $sql, $matches ) && isset( $matches[4] ) ? $matches[4] : '';
 	}
 
 	/**
@@ -760,7 +760,24 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 						$not_exists_charset_collate = ! isset( $collations[ $collate ] ) || ! array_search( $charset, $collations );
 
 						if ( $is_invalid_charset || $not_exists_charset_collate ) {
-							$sql = str_replace( array( $collate, $charset ), array( 'utf8_general_ci', 'utf8' ), $sql );
+
+							$std_collate = 'utf8_general_ci';
+							$std_character_set = 'utf8';
+							$std_charset = 'utf8';
+
+							if ( isset( $collations['utf8mb4_general_ci'] ) ) {
+								$std_collate = 'utf8mb4_general_ci';
+								$std_character_set = 'utf8mb4';
+								$std_charset = $collations['utf8mb4_general_ci'];
+							}
+
+							$character_set = $this->get_db_field( $sql, 'CHARACTER SET' );
+
+							$sql = str_replace( $collate, $std_collate, preg_replace( "/(CHARSET)(=)?(\s)?([^\s\"]+)/i", "$1$2{$std_charset}", $sql ) );
+
+							if ( $character_set ) {
+								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\"]+)/i", "$1$2 {$std_character_set}", $sql);
+							}
 						}
 
 						$query = $wpdb->query( $sql );
