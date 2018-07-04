@@ -45,7 +45,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 	/**
 	 * @return string
-	 * @since 2.0.20
 	 */
 	private function get_db_engine() {
 		try {
@@ -60,6 +59,30 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		}
 
 		return $engine;
+	}
+
+	/**
+	 * @return bool
+	 */
+	private function is_engine_exists( $engine ) {
+		try {
+			$engines = FW_Cache::get( $cache_key = 'fw:ext:backups:installed-engines' );
+		} catch ( FW_Cache_Not_Found_Exception $e ) {
+			/** @var wpdb $wpdb */
+			global $wpdb;
+
+			$engines = $wpdb->get_results( "SHOW ENGINES", ARRAY_A );
+
+			if ( $engines || is_wp_error( $engines ) || is_string( $engines ) ) {
+				return true;
+			}
+
+			$engines = wp_list_pluck( $engines, 'Engine' );
+
+			FW_Cache::set( $cache_key, $engines );
+		}
+
+		return in_array( $engine, $engines );
 	}
 
 	/**
@@ -87,7 +110,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 	 * @return string
 	 */
 	private function get_db_field( $sql, $field ) {
-		return preg_match( "/({$field})(=)?(\s)?([^\s\"]+)/i", $sql, $matches ) && isset( $matches[4] ) ? $matches[4] : '';
+		return preg_match( "/({$field})(=)?(\s)?([^\s\",]+)/i", $sql, $matches ) && isset( $matches[4] ) ? $matches[4] : '';
 	}
 
 	/**
@@ -745,8 +768,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 						$sql .= ') ' . $line['data']['opts'];
 
-						if ( ( $engine = $this->get_db_engine() ) && is_string( $engine ) ) {
-							$sql = str_replace( $this->get_db_field( $sql, 'ENGINE' ), $engine, $sql );
+						if ( ! $this->is_engine_exists( $this->get_db_field( $sql, 'ENGINE' ) ) ) {
+							$new_engine = $this->is_engine_exists( 'InnoDB' ) ? 'InnoDB' : $this->get_db_engine();
+							$sql = str_replace( $this->get_db_field( $sql, 'ENGINE' ), $new_engine, $sql );
 						}
 
 						$collations = $this->get_db_collations();
@@ -773,10 +797,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 							$character_set = $this->get_db_field( $sql, 'CHARACTER SET' );
 
-							$sql = str_replace( $collate, $std_collate, preg_replace( "/(CHARSET)(=)?(\s)?([^\s\"]+)/i", "$1$2{$std_charset}", $sql ) );
+							$sql = preg_replace( "/(CHARSET)(=)?(\s)?([^\s\",]+)/i", "$1$2{$std_charset}", $sql );
+							$sql = preg_replace( "/(COLLATE)(=)?(\s)?([^\s\",]+)/i", "$1$2{$std_collate}", $sql );
 
 							if ( $character_set ) {
-								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\"]+)/i", "$1$2 {$std_character_set}", $sql);
+								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\",]+)/i", "$1$2 {$std_character_set}", $sql);
 							}
 						}
 
