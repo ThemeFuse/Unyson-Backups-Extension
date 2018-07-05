@@ -785,25 +785,16 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 
 						if ( $is_invalid_charset || $not_exists_charset_collate ) {
 
-							$std_collate = 'utf8_general_ci';
-							$std_character_set = 'utf8';
-							$std_charset = 'utf8';
-
-							if ( isset( $collations['utf8mb4_general_ci'] ) ) {
-								$std_collate = 'utf8mb4_general_ci';
-								$std_character_set = 'utf8mb4';
-								$std_charset = $collations['utf8mb4_general_ci'];
-							}
-
 							$character_set = $this->get_db_field( $sql, 'CHARACTER SET' );
 
-							$sql = preg_replace( "/(CHARSET)(=)?(\s)?([^\s\",]+)/i", "$1$2{$std_charset}", $sql );
-							$sql = preg_replace( "/(COLLATE)(=)?(\s)?([^\s\",]+)/i", "$1 {$std_collate}", $sql );
+							$sql = preg_replace( "/(CHARSET)(=)?(\s)?([^\s\",]+)/i", "$1$2utf8", $sql );
+							$sql = preg_replace( "/(COLLATE)(=)?(\s)?([^\s\",]+)/i", "$1 utf8_general_ci", $sql );
 
 							if ( $character_set ) {
-								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\",]+)/i", "$1$2 {$std_character_set}", $sql);
+								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\",]+)/i", "$1$2 utf8", $sql);
 							}
 						}
+						error_log( $this->get_db_field( $sql, 'ENGINE' ) . PHP_EOL, 3, ABSPATH . 'debug.log' );
 
 						$query = $wpdb->query( $sql );
 
