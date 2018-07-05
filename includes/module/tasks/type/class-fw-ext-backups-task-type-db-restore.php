@@ -794,7 +794,6 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\",]+)/i", "$1$2 utf8", $sql);
 							}
 						}
-						error_log( $this->get_db_field( $sql, 'ENGINE' ) . PHP_EOL, 3, ABSPATH . 'debug.log' );
 
 						$query = $wpdb->query( $sql );
 
