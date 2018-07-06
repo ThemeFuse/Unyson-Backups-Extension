@@ -795,7 +795,11 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							}
 						}
 
+						$wpdb->query( 'SET GLOBAL FOREIGN_KEY_CHECKS=0' );
+
 						$query = $wpdb->query( $sql );
+
+						$wpdb->query( 'SET GLOBAL FOREIGN_KEY_CHECKS=1' );
 
 						if ( false === $query ) {
 							$fo = null;
