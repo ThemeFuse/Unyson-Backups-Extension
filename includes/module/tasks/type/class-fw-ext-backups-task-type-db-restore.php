@@ -788,7 +788,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 							$character_set = $this->get_db_field( $sql, 'CHARACTER SET' );
 
 							$sql = preg_replace( "/(CHARSET)(=)?(\s)?([^\s\",]+)/i", "$1$2utf8", $sql );
-							$sql = preg_replace( "/(COLLATE)(=)?(\s)?([^\s\",]+)/i", "$1 utf8_general_ci", $sql );
+							$sql = preg_replace( "/(COLLATE)(=)?(\s)?([^\s\",\)]+)/i", "$1 utf8_general_ci", $sql );
 
 							if ( $character_set ) {
 								$sql = preg_replace("/(CHARACTER SET)(=)?(\s)?([^\s\",]+)/i", "$1$2 utf8", $sql);
