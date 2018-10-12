@@ -95,6 +95,8 @@ class FW_Extension_Backups_Demo extends FW_Extension {
 			!current_user_can(self::backups()->get_capability())
 			||
 			!$this->get_demos()
+			||
+			!apply_filters('fw_ext_backups_demo_enable_menu', true)
 		) {
 			return;
 		}
