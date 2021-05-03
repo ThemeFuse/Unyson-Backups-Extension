@@ -239,7 +239,7 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 		foreach ($tables as $i => $table) {
 			$tables[$i] = preg_replace($prefix_regex, '', $table);
 
-			if (is_numeric($tables[$i]{0})) {
+			if (is_numeric($tables[$i][0])) {
 				/**
 				 * Skip multisite tables '1_options' (wp_1_options)
 				 * This happens when restore is done on main site.
