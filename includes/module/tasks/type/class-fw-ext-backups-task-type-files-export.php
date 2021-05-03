@@ -183,7 +183,7 @@ class FW_Ext_Backups_Task_Type_Files_Export extends FW_Ext_Backups_Task_Type {
 					continue;
 				}
 
-				if ($file{0} === '.' && !isset($included_hidden_names[$file])) {
+				if ($file[0] === '.' && !isset($included_hidden_names[$file])) {
 					continue;
 				}
 
