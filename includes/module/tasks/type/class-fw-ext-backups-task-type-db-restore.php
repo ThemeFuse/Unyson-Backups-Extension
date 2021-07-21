@@ -1211,6 +1211,9 @@ class FW_Ext_Backups_Task_Type_DB_Restore extends FW_Ext_Backups_Task_Type {
 					if ( false !== array_search( $foreign['referenced_table_name'], $drop_sql ) ) {
 						$wpdb->query( "ALTER TABLE {$foreign['table_name']} DROP FOREIGN KEY {$foreign['constraint_name']}" );
 					}
+					if ( false !== array_search( $foreign['REFERENCED_TABLE_NAME'], $drop_sql ) ) {
+						$wpdb->query( "ALTER TABLE {$foreign['TABLE_NAME']} DROP FOREIGN KEY {$foreign['CONSTRAINT_NAME']}" );
+					}
 				}
 
 				$drop_sql = "DROP TABLE \n". implode(" , \n", $drop_sql);
