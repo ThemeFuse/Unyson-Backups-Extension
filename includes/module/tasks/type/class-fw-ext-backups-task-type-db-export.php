@@ -177,7 +177,7 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 
 					if (empty($column_or_index)) continue; // don't know when this happens, just in case
 
-					if ($column_or_index{0} === '`') { // column
+					if ($column_or_index[0] === '`') { // column
 						$column_or_index = explode(' ', $column_or_index);
 						$column_name = trim(array_shift($column_or_index), '`');
 						$column_or_index = implode(' ', $column_or_index);
@@ -306,7 +306,7 @@ class FW_Ext_Backups_Task_Type_DB_Export extends FW_Ext_Backups_Task_Type {
 			foreach ($tables as $i => $table) {
 				$tables[$i] = preg_replace($prefix_regex, '', $table);
 
-				if (is_numeric($tables[$i]{0})) {
+				if (is_numeric($tables[$i][0] )) {
 					/**
 					 * Skip multisite tables '1_options' (wp_1_options)
 					 * This happens when export is done on main site.

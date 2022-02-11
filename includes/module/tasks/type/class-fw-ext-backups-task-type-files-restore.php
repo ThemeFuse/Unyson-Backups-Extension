@@ -209,7 +209,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 			}
 
 			foreach ($list as $file) {
-				if ($file['name']{0} === '.' && !isset($included_hidden_names[$file['name']])) {
+				if ( $file['name'][0] === '.' && !isset($included_hidden_names[$file['name']])) {
 					continue;
 				}
 
@@ -254,7 +254,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 			foreach ($files as $file_name) {
 				$file_path = $dir .'/'. $file_name;
 
-				if ($file_name{0} === '.' && !isset($included_hidden_names[$file_name])) {
+				if ( $file_name[0] === '.' && !isset($included_hidden_names[$file_name])) {
 					continue;
 				}
 
@@ -322,7 +322,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 			}
 
 			foreach ($list as $file) {
-				if ($file['name']{0} === '.' && !isset($included_hidden_names[$file['name']])) {
+				if ( $file['name'][0] === '.' && !isset($included_hidden_names[$file['name']])) {
 					continue;
 				}
 
@@ -385,7 +385,7 @@ class FW_Ext_Backups_Task_Type_Files_Restore extends FW_Ext_Backups_Task_Type {
 				$file_path = $source_dir .'/'. $file_name;
 				$destination_file_path = $destination_dir .'/'. $file_name;
 
-				if ($file_name{0} === '.' && !isset($included_hidden_names[$file_name])) {
+				if ( $file_name[0] === '.' && !isset($included_hidden_names[$file_name])) {
 					continue;
 				}
 
