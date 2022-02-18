@@ -46,12 +46,12 @@ class FW_Ext_Backups_Task_Type_Image_Sizes_Remove extends FW_Ext_Backups_Task_Ty
 		 */
 		global $wpdb;
 
-		$sql = implode( array(
+		$sql = implode( " \n", array(
 			"SELECT * FROM {$wpdb->posts}",
 			"WHERE post_type = 'attachment' AND post_mime_type LIKE %s AND ID > %d",
 			"ORDER BY ID",
 			"LIMIT 7"
-		), " \n");
+		) );
 
 		$wp_uploads_dir = wp_upload_dir();
 		$wp_uploads_dir_length = mb_strlen($wp_uploads_dir['basedir']);
