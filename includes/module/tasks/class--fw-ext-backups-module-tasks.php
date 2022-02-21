@@ -982,7 +982,7 @@ class _FW_Ext_Backups_Module_Tasks extends _FW_Ext_Backups_Module {
 	 * @param string $zip_path
 	 * @param array $filesystem_args {}|{hostname: '', username: '', password: '', connection_type: ''}
 	 */
-	public function do_restore($full = false, $zip_path, $filesystem_args = array()) {
+	public function do_restore($full = false, $zip_path = '', $filesystem_args = array()) {
 		$tmp_dir = self::backups()->get_tmp_dir();
 		$id_prefix = 'restore:';
 
